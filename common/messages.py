@@ -1,0 +1,37 @@
+class Messages:
+    FAILED = "failed"
+    FALSE = False
+    SUCCESS = "Success"
+    TRUE = True
+    HEADER_CONTAINS = "Header should contains deviceType, appVersion, ContentType, deviceId, device, " \
+                      "Authorization those fields"
+    TOKEN_EXPIRED = "Authorization token is Expired"
+    TOKEN_INVALID = "Authorization token is Invalid"
+    USER_NOT = "User not found"
+    FRESHWORK_FAILED = "Fresh work user registration failed"
+    FETCH_DATA_FAIL = 'Fetching card summary is failed'
+    UNAUTHORIZED = 'Unauthorized request'
+    AUTHORIZATION_FAILED = 'Invalid Authorization token'
+    AUTHORIZATION_MISSING = 'Header should contain authorization token'
+    EXCEPTION_JWT = "Exception occurred during validating the jwt token"
+    USER_NOT_MOB_EMAIL = "User mobile number/email id not matching. Please provide the correct mobile number/email id"
+    REPLACE_SUCCESS = "Process to issue a new card is initiated"
+    REPLACE_FAIL = "Process to issue a new card failed"
+    UPDATE_FW_CONTACT_SUCCESS = "OK"
+    UPDATE_FW_CONTACT_FAIL = "Updating fw contact failed"
+    USER_INFO = "user information not matched"
+    CARD_BLOCKED = "Your card ending in %s has been reported as damaged and a new one has been sent to the residential address we have on file for you. When you receive your replacement card, please activate it by logging in to the Neu app."
+    CARD_BLOCKED_FAILED = "Facing issues for blocking card"
+    NOT_MATCH = "User information not matched. Please check your email/mobile number"
+    FETCH_MINI_STATEMENT_FAIL = "Fetching the mini statement failed"
+    FETCH_MINI_STATEMENT_SUCCESS = "Successfully fetched the mini statement"
+    SOMETHING_WENT_WRONG = "something went wrong please try again"
+    CREDIT_DETAILS_NOT = "User credit card details not available"
+    FETCH_CARD_SUMMARY = "Successfully fetched card summary"
+    USER_INFO_FAILED = "No user found with the given profile details"
+    CARD_BLOCKED_SECOND = " has been reported as damaged and a new one has been sent to the residential address we have on file for you. When you receive your replacement card, please activate it by logging in to the Neu app."
+    CARD_BLOCKED_FIRST = "Your card ending in "
+    FRESH_WORK_ADD_FAILED = "Adding user information to fresh work failed"
+    USER_NOT_FOUND = "Invalid customerid/uuid"
+    CARD_REPLACE_SECOND = " has been terminated and a new one has been sent to the residential address we have on file for you. When you receive your new card, please activate it and update your card number with any retailers that used your previous card number for recurring payments."
+    INVALID_FORMAT = "Invalid format"
