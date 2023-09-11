@@ -35,3 +35,7 @@ class Messages:
     USER_NOT_FOUND = "Invalid customerid/uuid"
     CARD_REPLACE_SECOND = " has been terminated and a new one has been sent to the residential address we have on file for you. When you receive your new card, please activate it and update your card number with any retailers that used your previous card number for recurring payments."
     INVALID_FORMAT = "Invalid format"
+    TOKEN_URL = 'https://oauth2.googleapis.com/token'
+    PEOPLE_API_URL = 'https://people.googleapis.com/v1/people/me'
+    SCOPE = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/user.organization.read https://www.googleapis.com/auth/contacts.readonly'
+    AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/auth'

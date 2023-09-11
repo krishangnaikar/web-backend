@@ -43,7 +43,9 @@ class Users(BaseModel):
     user_last_name = TextField(null=False)
     # Email address used for login
     email = TextField(null=False)
-    password = TextField(null=False)
+    password = TextField(null=True)
+    access_token = TextField(default=None, null=True)
+    refresh_token = TextField(default=None, null=True)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod
@@ -73,6 +75,9 @@ class User(CoreModel):
     # e.g. Google, AWS, Microsoft, Apple, ETC
     idp_provider = TextField(null=True)
     is_active = BooleanField(default=True, null=False)
+
+
+
 
 
     class Meta:
