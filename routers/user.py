@@ -13,7 +13,7 @@ from common.messages import Messages
 from fastapi import APIRouter, Request, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
-from model.core.models import Users
+from model.core.models import Users, Organization
 import requests
 user_router = APIRouter(
     prefix='/user'
@@ -104,6 +104,11 @@ async def ssosignup(request: Request):
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
                                              "message": "User Already Registerd"})
+            organization = Organization.select().where(Organization.name==organization).first()
+            if organization is None:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized user"})
             user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,
                          organization=organization,role="operator",access_token=access_token,
                          refresh_token=refresh_token)
