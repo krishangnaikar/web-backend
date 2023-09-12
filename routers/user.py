@@ -242,30 +242,24 @@ async def ssosignup(request: Request):
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
                                              "message": "Invalid Payload"})
-            display_name = ""
             email_address = ""
-            if "names" in user_data:
-                display_name = user_data.get("names")[0].get("displayName")
             if "emailAddresses" in user_data:
                 email_address = user_data.get("emailAddresses")[0].get("value")
-            firstname,lastname = (display_name.split()[0] , display_name.split()[1])
             organization = email_address.split('@')[1].split(".")[0]
-            user = Users.select().where(Users.email == email_address).first()
+            user = Users.select().where((Users.email == email_address) & (Users.organization == organization)).first()
             if user:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
-                                             "message": "User Already Registerd"})
-            user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,
-                         organization=organization,role="operator",access_token=access_token,
-                         refresh_token=refresh_token)
-            user.save()
-            response_data = {
-                "access_token":access_token,
-                "display_name":display_name,
-                "email":email_address
-            }
-            return JSONResponse(status_code=200,
-                                content={"code": 200, "message": "OK", "data": response_data})
+                query = Users.update(access_token=access_token).where(Users.email == email_address)
+                updated_rows = query.execute()
+                response_data = {
+                    "access_token": access_token,
+                    "email": email_address
+                }
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response_data})
+
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Unauthorized User"})
         else:
             applog.error(f"| {data} | Api execution failed with 400 status code ")
             return JSONResponse(status_code=400,
