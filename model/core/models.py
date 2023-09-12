@@ -46,6 +46,8 @@ class Users(BaseModel):
     password = TextField(null=True)
     access_token = TextField(default=None, null=True)
     refresh_token = TextField(default=None, null=True)
+    organization = TextField(default=None,null=False)
+    role = TextField(null=False)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod

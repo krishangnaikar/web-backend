@@ -1,5 +1,20 @@
 CREATE SCHEMA IF NOT EXISTS "core";
 CREATE SCHEMA IF NOT EXISTS "agent";
+CREATE TABLE IF NOT EXISTS "user" (
+  "id" SERIAL NOT NULL PRIMARY KEY,
+  "created_at" TIMESTAMPTZ NOT NULL,
+  "updated_at" TIMESTAMPTZ NOT NULL,
+  "created_by" TEXT NOT NULL,
+  "updated_by" TEXT NOT NULL,
+  "user_first_name" TEXT NOT NULL,
+  "user_last_name" TEXT NOT NULL,
+  "email" TEXT NOT NULL,
+  "password" TEXT,
+  "access_token" TEXT,
+  "refresh_token" TEXT,
+  "organization" TEXT NOT NULL,
+  "role" TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS "core"."organization" (
   "id" BIGSERIAL NOT NULL PRIMARY KEY,
   "created_at" TIMESTAMPTZ NOT NULL,
