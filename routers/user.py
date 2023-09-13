@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import traceback
-
+import jwt
 from fastapi.security import HTTPBearer
 from urllib.parse import urlencode
 
@@ -15,10 +15,54 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from model.core.models import Users, Organization
 import requests
+import datetime
 user_router = APIRouter(
     prefix='/user'
 )
 
+@user_router.post('/login')
+async def login(request: Request):
+    try:
+        header = request.headers
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        if password and email  :
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                org_name = user.organization
+                hash_password = Users.hash_password(password)
+                user_password = user.password
+                if hash_password==user_password:
+                    payload = {
+                        "email": email,
+                        "organization": org_name,
+                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                    }
+                    secret_key = os.getenv("SECRET_KEY")
+                    # Generate the access token
+                    access_token = jwt.encode(payload, secret_key, algorithm='HS256')
+                    query = Users.update(access_token=access_token).where(Users.email == email)
+                    updated_rows = query.execute()
+                    response_data = {"email": email,
+                                     "organization": org_name,
+                                     "access_token": access_token}
+                    # Users.create(**datadict)
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "OK", "data": response_data})
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Unauthorized user"})
+        else:
+            applog.error(f"| {data} | Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
 
 @user_router.post('/signup')
 async def signup(request: Request):
@@ -29,13 +73,39 @@ async def signup(request: Request):
         last_name = data.get("last_name")
         email = data.get("email")
         password = data.get("password")
-        if first_name and last_name and password and email:
-            user = Users(user_first_name=first_name, user_last_name=last_name, email=email)
+        org_name = data.get("organization")
+        if first_name and last_name and password and email and org_name:
+            organization = Organization.select().where(Organization.name == org_name).first()
+            if organization is None:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized user"})
+            payload = {
+                "email": email,
+                "organization" : org_name,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+            }
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "User Already Registerd"})
+            # Define the secret key
+            secret_key = os.getenv("SECRET_KEY")
+
+            # Generate the access token
+            access_token = jwt.encode(payload, secret_key, algorithm='HS256')
+            user = Users(user_first_name=first_name, user_last_name=last_name, email=email,
+                         organization=org_name,role="operator",access_token=access_token,
+                         )
             user.set_password(password)  # Hashes the password and stores it
             user.save()
+            response_data={"email": email,
+                           "organization" : org_name,
+                           "access_token":access_token}
             # Users.create(**datadict)
             return JSONResponse(status_code=200,
-                                content={"code": 200, "message": "OK", "data": data})
+                                content={"code": 200, "message": "OK", "data": response_data})
         else:
             applog.error(f"| {data} | Api execution failed with 400 status code ")
             return JSONResponse(status_code=400,
@@ -106,8 +176,8 @@ async def ssosignup(request: Request):
                                              "message": "User Already Registerd"})
             organization = Organization.select().where(Organization.name==organization).first()
             if organization is None:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized user"})
             user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,
                          organization=organization,role="operator",access_token=access_token,
@@ -204,7 +274,7 @@ async def validate_token(request: Request):
         pass
 
 @user_router.post('/ssologin')
-async def ssosignup(request: Request):
+async def ssologin(request: Request):
     try:
         header = request.headers
         data = await request.json()
