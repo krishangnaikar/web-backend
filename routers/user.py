@@ -180,7 +180,7 @@ async def ssosignup(request: Request):
                                     content={"code": 401,
                                              "message": "Unauthorized user"})
             user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,
-                         organization=organization,role="operator",access_token=access_token,
+                         organization=organization.name,role="operator",access_token=access_token,
                          refresh_token=refresh_token)
             user.save()
             response_data = {
