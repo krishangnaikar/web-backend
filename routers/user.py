@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import json
 import math
 import os
@@ -348,6 +347,38 @@ async def ssologin(request: Request):
     finally:
         pass
 
+@user_router.post("/forgot_password")
+async def forgot_password(request : Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        new_password = data.get("new_password")
+        otp = data.get("otp")
+        if email and new_password and otp:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.otp==otp:
+                new_password = Users.hash_password(new_password)
+                query = Users.update(password=new_password).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "Password Changed", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid otp"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+
 @user_router.post('/send_otp')
 async def send_otp(request: Request):
     try:
@@ -355,26 +386,87 @@ async def send_otp(request: Request):
         email = data.get("email")
         if email:
             user = Users.select().where(Users.email == email).first()
-            user=True
-            # user = Users.get(Users.email==email)
             if user:
                 digits = [i for i in range(0, 10)]
-
                 ## initializing a string
                 random_str = ""
-
                 ## we can generate any lenght of string we want
                 for i in range(6):
                     index = math.floor(random.random() * 10)
                     random_str += str(digits[index])
                 handler = EmailHandler()
                 handler.send_email(email,f"OTP iS {random_str}")
+                query = Users.update(otp=random_str).where(Users.email == email)
+                updated_rows = query.execute()
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OTP SENT", "data": email})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
                                              "message": "Invalid Token"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/enable_mfa')
+async def enable_mfa(request: Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        access_token = data.get("access_token")
+        if email and access_token:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.access_token==access_token:
+                query = Users.update(mfa=True).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "MFA Enabled", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/change_password')
+async def change_password(request: Request):
+    try:
+        data = await request.json()
+        current_password = data.get("current_password")
+        new_password = data.get("new_password")
+        email = data.get("email")
+        if email and current_password and new_password:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                hash_password = Users.hash_password(current_password)
+                user_password = user.password
+                if hash_password == user_password:
+                    new_password = Users.hash_password(new_password)
+                    query = Users.update(password = new_password).where(Users.email == email)
+                    updated_rows = query.execute()
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "Password Changed", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
 
         else:
             applog.error("Api execution failed with 400 status code ")

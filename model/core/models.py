@@ -48,6 +48,8 @@ class Users(BaseModel):
     refresh_token = TextField(default=None, null=True)
     organization = TextField(default=None,null=False)
     role = TextField(null=False)
+    otp = TextField(null=True)
+    mfa = BooleanField(default=False)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod
@@ -77,11 +79,6 @@ class User(CoreModel):
     # e.g. Google, AWS, Microsoft, Apple, ETC
     idp_provider = TextField(null=True)
     is_active = BooleanField(default=True, null=False)
-
-
-
-
-
     class Meta:
         table_name = "organization_user"
         schema = "core"
