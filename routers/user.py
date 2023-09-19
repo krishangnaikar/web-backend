@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import math
 import os
+import random
 import traceback
 import jwt
 from fastapi.security import HTTPBearer
 from urllib.parse import urlencode
-
+from common.services.email_service import EmailHandler
 auth_scheme = HTTPBearer()
 from common.log_data import ApplicationLogger as applog
 from common.messages import Messages
@@ -346,3 +348,41 @@ async def ssologin(request: Request):
     finally:
         pass
 
+@user_router.post('/send_otp')
+async def send_otp(request: Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            user=True
+            # user = Users.get(Users.email==email)
+            if user:
+                digits = [i for i in range(0, 10)]
+
+                ## initializing a string
+                random_str = ""
+
+                ## we can generate any lenght of string we want
+                for i in range(6):
+                    index = math.floor(random.random() * 10)
+                    random_str += str(digits[index])
+                handler = EmailHandler()
+                handler.send_email(email,f"OTP iS {random_str}")
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OTP SENT", "data": email})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid Token"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
