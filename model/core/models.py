@@ -38,7 +38,7 @@ class CoreModel(BaseModel):
     id = BigAutoField(primary_key=True)
     organization = ForeignKeyField(Organization, null=False)
 
-class Users(BaseModel):
+class Users(CoreModel):
     user_first_name = TextField(null=False)
     user_last_name = TextField(null=False)
     # Email address used for login
@@ -46,10 +46,11 @@ class Users(BaseModel):
     password = TextField(null=True)
     access_token = TextField(default=None, null=True)
     refresh_token = TextField(default=None, null=True)
-    organization = TextField(default=None,null=False)
+    organization_name = TextField(null=False)
     role = TextField(null=False)
     otp = TextField(null=True)
     mfa = BooleanField(default=False)
+    email_valid = BooleanField(default=False)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod
@@ -68,7 +69,8 @@ class Users(BaseModel):
         self.password = self.hash_password(password)
 
     class Meta:
-        table_name = "user"
+        table_name = "users"
+        schema = "core"
 
 class User(CoreModel):
     user_first_name = TextField(null=False)
