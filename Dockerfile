@@ -6,10 +6,8 @@ RUN apt-get -y install vim
 
 WORKDIR /app
 
-COPY . .
-
 COPY requirements.txt /app/requirements.txt
 
 RUN pip install -r requirements.txt
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80","--reload"]
