@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 from model.core.models import Users, Organization
 import requests
 import datetime
+
 user_router = APIRouter(
     prefix='/user'
 )
@@ -29,13 +30,70 @@ async def login(request: Request):
         data = await request.json()
         email = data.get("email")
         password = data.get("password")
-        if password and email  :
+        if password and email:
             user = Users.select().where(Users.email == email).first()
             if user:
-                org_name = user.organization
+                org_name = user.organization_name
                 hash_password = Users.hash_password(password)
                 user_password = user.password
                 if hash_password==user_password:
+                    if user.mfa:
+                        digits = [i for i in range(0, 10)]
+                        ## initializing a string
+                        random_str = ""
+                        ## we can generate any lenght of string we want
+                        for i in range(6):
+                            index = math.floor(random.random() * 10)
+                            random_str += str(digits[index])
+                        handler = EmailHandler()
+                        handler.send_email(email, f"OTP iS {random_str}")
+                        query = Users.update(otp=random_str).where(Users.email == email)
+                        updated_rows = query.execute()
+                        return JSONResponse(status_code=200,
+                                            content={"code": 200, "message": "OTP SENT", "data": email})
+                    payload = {
+                        "email": email,
+                        "organization": org_name,
+                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                    }
+                    secret_key = os.getenv("SECRET_KEY")
+                    # Generate the access token
+                    access_token = jwt.encode(payload, secret_key, algorithm='HS256')
+                    query = Users.update(access_token=access_token).where(Users.email == email)
+                    updated_rows = query.execute()
+                    response_data = {"email": email,
+                                     "organization": org_name,
+                                     "access_token": access_token}
+                    # Users.create(**datadict)
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "OK", "data": response_data})
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Unauthorized user"})
+        else:
+            applog.error(f"| {data} | Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/mfa_login')
+async def mfa_login(request: Request):
+    try:
+        header = request.headers
+        data = await request.json()
+        email = data.get("email")
+        otp = data.get("otp")
+        if otp and email:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                org_name = user.organization_name
+                store_otp = user.otp
+                if store_otp==otp:
                     payload = {
                         "email": email,
                         "organization": org_name,
@@ -98,7 +156,7 @@ async def signup(request: Request):
             # Generate the access token
             access_token = jwt.encode(payload, secret_key, algorithm='HS256')
             user = Users(user_first_name=first_name, user_last_name=last_name, email=email,
-                         organization=org_name,role="operator",access_token=access_token,
+                         organization_name=org_name,role="operator",access_token=access_token,organization_id=organization.id
                          )
             user.set_password(password)  # Hashes the password and stores it
             user.save()
@@ -181,8 +239,18 @@ async def ssosignup(request: Request):
                 return JSONResponse(status_code=401,
                                     content={"code": 401,
                                              "message": "Unauthorized user"})
-            user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,
-                         organization=organization.name,role="operator",access_token=access_token,
+            payload = {
+                "email": email_address,
+                "organization": organization.name,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+            }
+            # Define the secret key
+            secret_key = os.getenv("SECRET_KEY")
+
+            # Generate the access token
+            access_token = jwt.encode(payload, secret_key, algorithm='HS256')
+            user = Users(user_first_name=firstname, user_last_name=lastname, email=email_address,organization_id=organization.id,
+                         organization_name=organization.name,role="operator",access_token=access_token,
                          refresh_token=refresh_token)
             user.save()
             response_data = {
@@ -247,18 +315,16 @@ async def get_sso_url(request: Request):
     finally:
         pass
 
-@user_router.post('/validate_token')
+@user_router.get('/validate_token')
 async def validate_token(request: Request):
     try:
         headers = request.headers
-        data = await request.json()
-        access_token = data.get("access_token")
         email,organization = validate(headers)
-        if access_token and email:
+        if email:
             user = Users.select().where(Users.email == email).first()
-            if user and user.access_token == access_token:
+            if user:
                 return JSONResponse(status_code=200,
-                                    content={"code": 200, "message": "User Authorized", "data": access_token})
+                                    content={"code": 200, "message": "User Authorized", "data": email})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
@@ -268,7 +334,7 @@ async def validate_token(request: Request):
             applog.error("Api execution failed with 400 status code ")
             return JSONResponse(status_code=400,
                                 content={"code": 400,
-                                         "message": "Invalid Payload"})
+                                         "message": "Invalid Token"})
     except Exception as exp:
         applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
@@ -323,8 +389,18 @@ async def ssologin(request: Request):
             if "emailAddresses" in user_data:
                 email_address = user_data.get("emailAddresses")[0].get("value")
             organization = email_address.split('@')[1].split(".")[0]
-            user = Users.select().where((Users.email == email_address) & (Users.organization == organization)).first()
+            user = Users.select().where((Users.email == email_address) & (Users.organization_name == organization)).first()
             if user:
+                payload = {
+                    "email": email_address,
+                    "organization": organization.name,
+                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                }
+                # Define the secret key
+                secret_key = os.getenv("SECRET_KEY")
+
+                # Generate the access token
+                access_token = jwt.encode(payload, secret_key, algorithm='HS256')
                 query = Users.update(access_token=access_token).where(Users.email == email_address)
                 updated_rows = query.execute()
                 response_data = {
@@ -417,16 +493,14 @@ async def send_otp(request: Request):
     finally:
         pass
 
-@user_router.post('/enable_mfa')
+@user_router.get('/enable_mfa')
 async def enable_mfa(request: Request):
     try:
         headers = request.headers
-        data = await request.json()
-        access_token = data.get("access_token")
         email,organization = validate(headers)
-        if email and access_token:
+        if email:
             user = Users.select().where(Users.email == email).first()
-            if user and user.access_token==access_token:
+            if user:
                 query = Users.update(mfa=True).where(Users.email == email)
                 updated_rows = query.execute()
                 return JSONResponse(status_code=200,
