@@ -1,7 +1,7 @@
 import os
 import sys
 from logging.config import dictConfig
-
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -62,15 +62,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 app.include_router(user_router)
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # calling middleware
 # JwtMiddleWareToken = JwtMiddleWare(logger=logging)
 # app.add_middleware(BaseHTTPMiddleware, dispatch=JwtMiddleWareToken)
 if __name__ == "__main__":
-    uvicorn.run('main:app', host="127.0.0.1", port=8000)
+    uvicorn.run('main:app', host="0.0.0.0" ,port=8000)
