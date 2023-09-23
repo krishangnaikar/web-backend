@@ -8,6 +8,7 @@ import jwt
 from fastapi.security import HTTPBearer
 from urllib.parse import urlencode
 from common.services.email_service import EmailHandler
+from common.services.jwt_decoder import validate
 auth_scheme = HTTPBearer()
 from common.log_data import ApplicationLogger as applog
 from common.messages import Messages
@@ -249,12 +250,12 @@ async def get_sso_url(request: Request):
 @user_router.post('/validate_token')
 async def validate_token(request: Request):
     try:
+        headers = request.headers
         data = await request.json()
         access_token = data.get("access_token")
-        email = data.get("email")
-        if access_token:
+        email,organization = validate(headers)
+        if access_token and email:
             user = Users.select().where(Users.email == email).first()
-            # user = Users.get(Users.email==email)
             if user and user.access_token == access_token:
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "User Authorized", "data": access_token})
@@ -419,9 +420,10 @@ async def send_otp(request: Request):
 @user_router.post('/enable_mfa')
 async def enable_mfa(request: Request):
     try:
+        headers = request.headers
         data = await request.json()
-        email = data.get("email")
         access_token = data.get("access_token")
+        email,organization = validate(headers)
         if email and access_token:
             user = Users.select().where(Users.email == email).first()
             if user and user.access_token==access_token:
