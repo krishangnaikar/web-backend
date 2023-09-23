@@ -1,12 +1,14 @@
 from __future__ import annotations
-
 import json
+import math
 import os
+import random
 import traceback
 import jwt
 from fastapi.security import HTTPBearer
 from urllib.parse import urlencode
-
+from common.services.email_service import EmailHandler
+from common.services.jwt_decoder import validate
 auth_scheme = HTTPBearer()
 from common.log_data import ApplicationLogger as applog
 from common.messages import Messages
@@ -248,12 +250,12 @@ async def get_sso_url(request: Request):
 @user_router.post('/validate_token')
 async def validate_token(request: Request):
     try:
+        headers = request.headers
         data = await request.json()
         access_token = data.get("access_token")
-        email = data.get("email")
-        if access_token:
+        email,organization = validate(headers)
+        if access_token and email:
             user = Users.select().where(Users.email == email).first()
-            # user = Users.get(Users.email==email)
             if user and user.access_token == access_token:
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "User Authorized", "data": access_token})
@@ -346,3 +348,166 @@ async def ssologin(request: Request):
     finally:
         pass
 
+@user_router.post("/forgot_password")
+async def forgot_password(request : Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        new_password = data.get("new_password")
+        otp = data.get("otp")
+        if email and new_password and otp:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.otp==otp:
+                new_password = Users.hash_password(new_password)
+                query = Users.update(password=new_password).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "Password Changed", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid otp"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+
+@user_router.post('/send_otp')
+async def send_otp(request: Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                digits = [i for i in range(0, 10)]
+                ## initializing a string
+                random_str = ""
+                ## we can generate any lenght of string we want
+                for i in range(6):
+                    index = math.floor(random.random() * 10)
+                    random_str += str(digits[index])
+                handler = EmailHandler()
+                handler.send_email(email,f"OTP iS {random_str}")
+                query = Users.update(otp=random_str).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OTP SENT", "data": email})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid Token"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/enable_mfa')
+async def enable_mfa(request: Request):
+    try:
+        headers = request.headers
+        data = await request.json()
+        access_token = data.get("access_token")
+        email,organization = validate(headers)
+        if email and access_token:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.access_token==access_token:
+                query = Users.update(mfa=True).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "MFA Enabled", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/change_password')
+async def change_password(request: Request):
+    try:
+        data = await request.json()
+        current_password = data.get("current_password")
+        new_password = data.get("new_password")
+        email = data.get("email")
+        if email and current_password and new_password:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                hash_password = Users.hash_password(current_password)
+                user_password = user.password
+                if hash_password == user_password:
+                    new_password = Users.hash_password(new_password)
+                    query = Users.update(password = new_password).where(Users.email == email)
+                    updated_rows = query.execute()
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "Password Changed", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/add_organization_domain')
+async def add_organization(request: Request):
+    try:
+        data = await request.json()
+        name = data.get("name")
+        website = data.get("website")
+        details = data.get("details")
+        if name and website and details:
+            organization = Organization.select().where(Organization.name == name).first()
+            if organization:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Already Present"})
+            else:
+                org = Organization(name=name,website=website,details=details)
+                org.save()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200,
+                                             "message": "Organization added"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass

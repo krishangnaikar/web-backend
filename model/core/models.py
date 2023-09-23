@@ -9,6 +9,7 @@ load_dotenv()
 PG_HOST = environ.get("POSTGRES_HOST_NAME", default="localhost")
 POSTGRES_USER_NAME = environ.get("POSTGRES_USER_NAME", default="postgres")
 POSTGRES_USER_PASSWORD = environ.get("POSTGRES_USER_PASSWORD", default="password")
+POSTGRES_DB_NAME = environ.get("POSTGRES_DB_NAME",default="truenil")
 #initialize connection to database
 db = PostgresqlExtDatabase("truenil", user=POSTGRES_USER_NAME, password=POSTGRES_USER_PASSWORD, host=PG_HOST)
 
@@ -38,7 +39,7 @@ class CoreModel(BaseModel):
     id = BigAutoField(primary_key=True)
     organization = ForeignKeyField(Organization, null=False)
 
-class Users(BaseModel):
+class Users(CoreModel):
     user_first_name = TextField(null=False)
     user_last_name = TextField(null=False)
     # Email address used for login
@@ -46,8 +47,11 @@ class Users(BaseModel):
     password = TextField(null=True)
     access_token = TextField(default=None, null=True)
     refresh_token = TextField(default=None, null=True)
-    organization = TextField(default=None,null=False)
+    organization_name = TextField(null=False)
     role = TextField(null=False)
+    otp = TextField(null=True)
+    mfa = BooleanField(default=False)
+    email_valid = BooleanField(default=False)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod
@@ -66,7 +70,8 @@ class Users(BaseModel):
         self.password = self.hash_password(password)
 
     class Meta:
-        table_name = "user"
+        table_name = "users"
+        schema = "core"
 
 class User(CoreModel):
     user_first_name = TextField(null=False)
@@ -77,11 +82,6 @@ class User(CoreModel):
     # e.g. Google, AWS, Microsoft, Apple, ETC
     idp_provider = TextField(null=True)
     is_active = BooleanField(default=True, null=False)
-
-
-
-
-
     class Meta:
         table_name = "organization_user"
         schema = "core"
