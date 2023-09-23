@@ -478,3 +478,34 @@ async def change_password(request: Request):
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
     finally:
         pass
+
+@user_router.post('/add_organization_domain')
+async def add_organization(request: Request):
+    try:
+        data = await request.json()
+        name = data.get("name")
+        website = data.get("website")
+        details = data.get("details")
+        if name and website and details:
+            organization = Organization.select().where(Organization.name == name).first()
+            if organization:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Already Present"})
+            else:
+                org = Organization(name=name,website=website,details=details)
+                org.save()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200,
+                                             "message": "Organization added"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
