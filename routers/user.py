@@ -63,7 +63,7 @@ async def login(request: Request):
                     updated_rows = query.execute()
                     response_data = {"email": email,
                                      "organization": org_name,
-                                     "access_token": access_token}
+                                     "access_token": access_token,"display_name":user.user_first_name + " "+ user.user_last_name}
                     # Users.create(**datadict)
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "OK", "data": response_data})
@@ -386,6 +386,9 @@ async def ssologin(request: Request):
                                     content={"code": 400,
                                              "message": "Invalid Payload"})
             email_address = ""
+            display_name = ""
+            if "names" in user_data:
+                display_name = user_data.get("names")[0].get("displayName")
             if "emailAddresses" in user_data:
                 email_address = user_data.get("emailAddresses")[0].get("value")
             organization = email_address.split('@')[1].split(".")[0]
@@ -393,7 +396,7 @@ async def ssologin(request: Request):
             if user:
                 payload = {
                     "email": email_address,
-                    "organization": organization.name,
+                    "organization": organization,
                     "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
                 }
                 # Define the secret key
@@ -405,7 +408,8 @@ async def ssologin(request: Request):
                 updated_rows = query.execute()
                 response_data = {
                     "access_token": access_token,
-                    "email": email_address
+                    "email": email_address,
+                    "display_name": display_name
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OK", "data": response_data})
