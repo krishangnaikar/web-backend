@@ -484,7 +484,7 @@ async def send_otp(request: Request):
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
-                                             "message": "Invalid Token"})
+                                             "message": "Unauthorized User"})
 
         else:
             applog.error("Api execution failed with 400 status code ")
