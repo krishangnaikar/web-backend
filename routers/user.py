@@ -46,7 +46,7 @@ async def login(request: Request):
                             index = math.floor(random.random() * 10)
                             random_str += str(digits[index])
                         handler = EmailHandler()
-                        handler.send_email(email, f"OTP iS {random_str}")
+                        handler.send_otp_email(email,random_str)
                         query = Users.update(otp=random_str).where(Users.email == email)
                         updated_rows = query.execute()
                         return JSONResponse(status_code=200,
@@ -102,7 +102,7 @@ async def mfa_login(request: Request):
                     secret_key = os.getenv("SECRET_KEY")
                     # Generate the access token
                     access_token = jwt.encode(payload, secret_key, algorithm='HS256')
-                    query = Users.update(access_token=access_token).where(Users.email == email)
+                    query = Users.update(access_token=access_token,otp="").where(Users.email == email)
                     updated_rows = query.execute()
                     response_data = {"email": email,
                                      "organization": org_name,
@@ -439,8 +439,9 @@ async def forgot_password(request : Request):
             user = Users.select().where(Users.email == email).first()
             if user and user.otp==otp:
                 new_password = Users.hash_password(new_password)
-                query = Users.update(password=new_password).where(Users.email == email)
+                query = Users.update(password=new_password,otp="").where(Users.email == email)
                 updated_rows = query.execute()
+
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "Password Changed", "data": ""})
             else:
@@ -476,7 +477,7 @@ async def send_otp(request: Request):
                     index = math.floor(random.random() * 10)
                     random_str += str(digits[index])
                 handler = EmailHandler()
-                handler.send_email(email,f"OTP iS {random_str}")
+                handler.send_otp_email(email,random_str)
                 query = Users.update(otp=random_str).where(Users.email == email)
                 updated_rows = query.execute()
                 return JSONResponse(status_code=200,
@@ -578,6 +579,40 @@ async def add_organization(request: Request):
                 return JSONResponse(status_code=200,
                                     content={"code": 200,
                                              "message": "Organization added"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.get('/get-profile')
+async def get_profile(request: Request):
+    try:
+        headers = request.headers
+        email,organization = validate(headers)
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                response_data = {
+                    "first_name": user.user_first_name,
+                    "last_name": user.user_last_name,
+                    "organization": user.organization_name,
+                    "mfa_enabled" : user.mfa
+                }
+                query = Users.update(mfa=True).where(Users.email == email)
+                updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "MFA Enabled", "data": response_data})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
 
         else:
             applog.error("Api execution failed with 400 status code ")
