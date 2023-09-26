@@ -160,7 +160,9 @@ async def signup(request: Request):
                          )
             user.set_password(password)  # Hashes the password and stores it
             user.save()
-            response_data={"email": email,
+            handler = EmailHandler()
+            handler.send_email_validation(email, access_token)
+            response_data = {"email": email,
                            "organization" : org_name,
                            "access_token":access_token}
             # Users.create(**datadict)
@@ -325,6 +327,34 @@ async def validate_token(request: Request):
             if user:
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "User Authorized", "data": email})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid Token"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Token"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.get('/validate_email')
+async def validate_email(request: Request):
+    try:
+        headers = request.headers
+        email,organization = validate(headers)
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                query = Users.update(email_valid=True).where(Users.email == email)
+                query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "Email Verified", "data": email})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
@@ -600,6 +630,7 @@ async def get_profile(request: Request):
             user = Users.select().where(Users.email == email).first()
             if user:
                 response_data = {
+                    "email": email,
                     "first_name": user.user_first_name,
                     "last_name": user.user_last_name,
                     "organization": user.organization_name,
