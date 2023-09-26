@@ -27,7 +27,7 @@ class EmailHandler:
         # Specify the email subject and body
         subject = 'OTP for reset password'
         # Read the HTML template from the file
-        path_components = ['common', 'services', 'otp.html']
+        path_components = ['common', 'services', 'reset-otp.html']
 
         # Use os.path.join to create the full file path
         file_path = os.path.join(*path_components)
