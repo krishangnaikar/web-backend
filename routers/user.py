@@ -46,7 +46,7 @@ async def login(request: Request):
                             index = math.floor(random.random() * 10)
                             random_str += str(digits[index])
                         handler = EmailHandler()
-                        handler.send_otp_email(email,random_str)
+                        handler.send_mfa_otp_email(email,random_str)
                         query = Users.update(otp=random_str).where(Users.email == email)
                         updated_rows = query.execute()
                         return JSONResponse(status_code=200,
