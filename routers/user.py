@@ -624,3 +624,35 @@ async def get_profile(request: Request):
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
     finally:
         pass
+
+@user_router.post('/verify_otp')
+async def verify_otp(request: Request):
+    try:
+        data = await request.json()
+        email = data.get("email")
+        otp = data.get("otp")
+        if email and otp:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                if user.otp==otp:
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "OTP verified", "data": ""})
+                else:
+                    return JSONResponse(status_code=400,
+                                        content={"code": 400,
+                                                 "message": "Invalid OTP"})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
