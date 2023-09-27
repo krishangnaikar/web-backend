@@ -9,6 +9,7 @@ from fastapi.security import HTTPBearer
 from urllib.parse import urlencode
 from common.services.email_service import EmailHandler
 from common.services.jwt_decoder import validate
+from common.services.authentictor import generate_mfa_uri,validate_otp
 auth_scheme = HTTPBearer()
 from common.log_data import ApplicationLogger as applog
 from common.messages import Messages
@@ -37,7 +38,7 @@ async def login(request: Request):
                 hash_password = Users.hash_password(password)
                 user_password = user.password
                 if hash_password==user_password:
-                    if user.mfa:
+                    if user.mfa and user.mfa_type=="email":
                         digits = [i for i in range(0, 10)]
                         ## initializing a string
                         random_str = ""
@@ -50,7 +51,10 @@ async def login(request: Request):
                         query = Users.update(otp=random_str).where(Users.email == email)
                         updated_rows = query.execute()
                         return JSONResponse(status_code=200,
-                                            content={"code": 200, "message": "OTP SENT", "data": email})
+                                            content={"code": 200, "message": "OTP SENT", "data": "email"})
+                    if user.mfa and user.mfa_type=="authenticator":
+                        return JSONResponse(status_code=200,
+                                            content={"code": 200, "message": "OTP SENT", "data": "authenticator"})
                     payload = {
                         "email": email,
                         "organization": org_name,
@@ -90,9 +94,15 @@ async def mfa_login(request: Request):
         otp = data.get("otp")
         if otp and email:
             user = Users.select().where(Users.email == email).first()
-            if user:
+            if user and user.mfa:
+                mfa_type = user.mfa_type
+                secret_key = user.mfa_secret
                 org_name = user.organization_name
-                store_otp = user.otp
+                store_otp = ""
+                if mfa_type=="email":
+                    store_otp = user.otp
+                if mfa_type=="authenticator":
+                    store_otp = validate_otp(otp,secret_key)
                 if store_otp==otp:
                     payload = {
                         "email": email,
@@ -111,6 +121,10 @@ async def mfa_login(request: Request):
                     # Users.create(**datadict)
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "OK", "data": response_data})
+                else:
+                    return JSONResponse(status_code=400,
+                                        content={"code": 400,
+                                                 "message": "Invalid OTP"})
             return JSONResponse(status_code=401,
                                 content={"code": 401,
                                          "message": "Unauthorized user"})
@@ -529,15 +543,17 @@ async def send_otp(request: Request):
     finally:
         pass
 
-@user_router.get('/enable_mfa')
+@user_router.post('/enable_mfa')
 async def enable_mfa(request: Request):
     try:
         headers = request.headers
+        data = await request.json()
+        mfa_type = data.get("mfa_type")
         email,organization = validate(headers)
-        if email:
+        if email and mfa_type in ["email","authenticator"]:
             user = Users.select().where(Users.email == email).first()
             if user:
-                query = Users.update(mfa=True).where(Users.email == email)
+                query = Users.update(mfa=True,mfa_type=mfa_type).where(Users.email == email)
                 updated_rows = query.execute()
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "MFA Enabled", "data": ""})
@@ -672,12 +688,49 @@ async def verify_otp(request: Request):
             user = Users.select().where(Users.email == email).first()
             if user:
                 if user.otp==otp:
-                    return JSONResponse(status_code=200,
-                                        content={"code": 200, "message": "OTP verified", "data": ""})
+                    if user.otp_expiry > datetime.datetime.now():
+                        return JSONResponse(status_code=200,
+                                            content={"code": 200, "message": "OTP verified", "data": ""})
+                    else:
+                        return JSONResponse(status_code=400,
+                                            content={"code": 400,
+                                                     "message": "OTP Expired"})
                 else:
                     return JSONResponse(status_code=400,
                                         content={"code": 400,
                                                  "message": "Invalid OTP"})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.get('/generate_mfa_uri')
+async def get_profile(request: Request):
+    try:
+        headers = request.headers
+        email,organization = validate(headers)
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.mfa and user.mfa_type=="authenticator":
+                secret_key , uri = generate_mfa_uri(email)
+                query = Users.update(mfa_uri=uri,mfa_secret=secret_key).where(Users.email == email)
+                query.execute()
+                response_data = {
+                    "uri":uri
+                }
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "Success", "data": response_data})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
