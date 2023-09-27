@@ -18,10 +18,13 @@ CREATE TABLE IF NOT EXISTS "core"."users" (
   "otp" TEXT,
   "mfa" BOOLEAN NOT NULL,
   "email_valid" BOOLEAN NOT NULL,
+  "mfa_type" TEXT,
+  "mfa_secret" TEXT,
+  "mfa_uri" TEXT,
+  "otp_expiry" TIMESTAMP NOT NULL,
   FOREIGN KEY ("organization_id") REFERENCES "core"."organization" ("id")
 )
 ;
-
 CREATE TABLE IF NOT EXISTS "core"."organization" (
   "id" BIGSERIAL NOT NULL PRIMARY KEY,
   "created_at" TIMESTAMPTZ NOT NULL,
