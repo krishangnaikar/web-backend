@@ -560,10 +560,11 @@ async def enable_mfa(request: Request):
 @user_router.post('/change_password')
 async def change_password(request: Request):
     try:
+        headers = request.headers
         data = await request.json()
         current_password = data.get("current_password")
         new_password = data.get("new_password")
-        email = data.get("email")
+        email, organization = validate(headers)
         if email and current_password and new_password:
             user = Users.select().where(Users.email == email).first()
             if user:
