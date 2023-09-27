@@ -630,12 +630,18 @@ async def get_profile(request: Request):
         if email:
             user = Users.select().where(Users.email == email).first()
             if user:
+                set_passsword = True
+                password = user.password
+                if password is None or password=="":
+                    set_passsword=False
+
                 response_data = {
                     "email": email,
                     "first_name": user.user_first_name,
                     "last_name": user.user_last_name,
                     "organization": user.organization_name,
-                    "mfa_enabled" : user.mfa
+                    "mfa_enabled" : user.mfa,
+                    "set_password":set_passsword
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "MFA Enabled", "data": response_data})
