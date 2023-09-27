@@ -106,7 +106,8 @@ async def mfa_login(request: Request):
                     updated_rows = query.execute()
                     response_data = {"email": email,
                                      "organization": org_name,
-                                     "access_token": access_token}
+                                     "access_token": access_token,
+                                     "display_name":user.user_first_name + " " + user.user_last_name}
                     # Users.create(**datadict)
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "OK", "data": response_data})
@@ -636,8 +637,6 @@ async def get_profile(request: Request):
                     "organization": user.organization_name,
                     "mfa_enabled" : user.mfa
                 }
-                query = Users.update(mfa=True).where(Users.email == email)
-                updated_rows = query.execute()
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "MFA Enabled", "data": response_data})
             else:
