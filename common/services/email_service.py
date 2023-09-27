@@ -69,7 +69,7 @@ class EmailHandler:
         recipient_email = email
 
         # Specify the email subject and body
-        subject = 'OTP for reset password'
+        subject = 'OTP for login'
         # Read the HTML template from the file
         path_components = ['common', 'services', 'mfa-otp.html']
 
@@ -114,7 +114,7 @@ class EmailHandler:
         recipient_email = email
 
         # Specify the email subject and body
-        subject = 'OTP for reset password'
+        subject = 'Truenil Email Validation'
         # Read the HTML template from the file
         path_components = ['common', 'services', 'verify-user.html']
 
