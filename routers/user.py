@@ -368,6 +368,9 @@ async def validate_email(request: Request):
         if email:
             user = Users.select().where(Users.email == email).first()
             if user:
+                if user.email_valid:
+                    return JSONResponse(status_code=400,
+                                        content={"code": 400, "message": "Email Already Verified", "data": email})
                 query = Users.update(email_valid=True).where(Users.email == email)
                 query.execute()
                 return JSONResponse(status_code=200,
