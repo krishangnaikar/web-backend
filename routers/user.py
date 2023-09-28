@@ -52,7 +52,7 @@ async def login(request: Request):
                         updated_rows = query.execute()
                         return JSONResponse(status_code=200,
                                             content={"code": 200, "message": "OTP SENT", "data": "email"})
-                    if user.mfa and user.mfa_type=="authenticator":
+                    if user.mfa and user.mfa_type=="authenticator" and user.mfa_verified:
                         return JSONResponse(status_code=200,
                                             content={"code": 200, "message": "OTP SENT", "data": "authenticator"})
                     payload = {
