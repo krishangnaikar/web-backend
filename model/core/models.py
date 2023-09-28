@@ -56,6 +56,7 @@ class Users(CoreModel):
     mfa_secret = TextField(default=None, null=True)
     mfa_uri = TextField(default=None, null=True)
     otp_expiry = DateTimeField(default=datetime.datetime.now())
+    mfa_verified = BooleanField(default=False)
     # Values would refer to IDP Provider details.
     # e.g. Google, AWS, Microsoft, Apple, ETC
     @staticmethod

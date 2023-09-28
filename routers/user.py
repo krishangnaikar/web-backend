@@ -664,7 +664,8 @@ async def get_profile(request: Request):
                     "organization": user.organization_name,
                     "mfa_enabled" : user.mfa,
                     "set_password":set_passsword,
-                    "mfa_ype": user.mfa_type
+                    "mfa_type": user.mfa_type,
+                    "mfa_verified": user.mfa_verified
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "MFA Enabled", "data": response_data})
@@ -765,8 +766,10 @@ async def verify_mfa_otp(request: Request):
             secret_key = user.mfa_secret
             store_otp = validate_otp(otp, secret_key)
             if user and secret_key and store_otp==otp:
-                    return JSONResponse(status_code=200,
-                                        content={"code": 200, "message": "OTP verified", "data": ""})
+                query = Users.update(mfa_verified=True).where(Users.email == email)
+                query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OTP verified", "data": ""})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
