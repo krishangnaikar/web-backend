@@ -663,7 +663,8 @@ async def get_profile(request: Request):
                     "last_name": user.user_last_name,
                     "organization": user.organization_name,
                     "mfa_enabled" : user.mfa,
-                    "set_password":set_passsword
+                    "set_password":set_passsword,
+                    "mfa_ype": user.mfa_type
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "MFA Enabled", "data": response_data})
@@ -740,6 +741,36 @@ async def get_profile(request: Request):
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
                                              "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/verify_mfa_otp')
+async def verify_mfa_otp(request: Request):
+    try:
+        data = await request.json()
+        headers = request.headers
+        email, organization = validate(headers)
+        otp = data.get("otp")
+        if email and otp:
+            user = Users.select().where(Users.email == email).first()
+            secret_key = user.mfa_secret
+            store_otp = validate_otp(otp, secret_key)
+            if user and secret_key and store_otp==otp:
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "OTP verified", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Invalid OTP"})
 
         else:
             applog.error("Api execution failed with 400 status code ")
