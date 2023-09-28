@@ -668,7 +668,7 @@ async def get_profile(request: Request):
                     "mfa_verified": user.mfa_verified
                 }
                 return JSONResponse(status_code=200,
-                                    content={"code": 200, "message": "MFA Enabled", "data": response_data})
+                                    content={"code": 200, "message": "Success", "data": response_data})
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
