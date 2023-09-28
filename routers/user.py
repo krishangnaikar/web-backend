@@ -729,15 +729,24 @@ async def get_profile(request: Request):
         email,organization = validate(headers)
         if email:
             user = Users.select().where(Users.email == email).first()
-            if user and user.mfa and user.mfa_type=="authenticator":
-                secret_key , uri = generate_mfa_uri(email)
-                query = Users.update(mfa_uri=uri,mfa_secret=secret_key).where(Users.email == email)
-                query.execute()
-                response_data = {
-                    "uri":uri
-                }
-                return JSONResponse(status_code=200,
-                                    content={"code": 200, "message": "Success", "data": response_data})
+            if user:
+                if user.mfa_verified == False:
+                    secret_key , uri = generate_mfa_uri(email)
+                    query = Users.update(mfa_uri=uri,mfa_secret=secret_key).where(Users.email == email)
+                    query.execute()
+                    response_data = {
+                        "uri":uri
+                    }
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "Success", "data": response_data})
+                else:
+                    uri = user.mfa_uri
+                    response_data = {
+                        "uri": uri
+                    }
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "Success", "data": response_data})
+
             else:
                 return JSONResponse(status_code=400,
                                     content={"code": 400,
