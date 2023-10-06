@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from routers.user import user_router
+from routers.agent import agent_router
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config'))
 from config.custom_log  import log_config
 from common.app_constants import AppConstants
@@ -61,7 +62,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 app.include_router(user_router)
-
+app.include_router(agent_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
