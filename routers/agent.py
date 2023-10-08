@@ -69,7 +69,8 @@ async def login(request: Request):
                         .offset(offset)
                         .limit(limitt)  # Ensures only the latest rows per agent are returned
                     )
-                    response["total_count"] = len(cpu_query)
+                    agent_count = Agent.select().where(Agent.organization_id == str(organization)).count()
+                    response["total_count"] = agent_count
                     response["offset"] = offset
                     response["limit"] = limitt
                     date = cpu_query[0].updated_at
@@ -125,7 +126,8 @@ async def login(request: Request):
                         .offset(offset)
                         .limit(limitt)  # Ensures only the latest rows per agent are returned
                     )
-                    response["total_count"] = len(cpu_query)
+                    agent_count = Agent.select().count()
+                    response["total_count"] = agent_count
                     response["offset"] = offset
                     response["limit"] = limitt
                     date = cpu_query[0].updated_at
