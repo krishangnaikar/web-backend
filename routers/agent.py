@@ -35,18 +35,20 @@ async def login(request: Request):
         if organization and email:
             user = Users.select().where(Users.email == email).first()
             if user:
-                if user.role=="operator":
+                if user.role=="operator" or user.role=="admin":
                     organization = user.organization_id
                     response = {}
                     agents = []
                     cpu_query = list(
                         AgentMetrics
-                        .select()
-                        .where((AgentMetrics.organization_id == str(organization))&(AgentMetrics.metric_name=="CPU Usage"))
+                        .select(AgentMetrics,Agent)  # Include Agent location)
+                        .join(Agent, on=(AgentMetrics.agent_id == Agent.id))  # Join with Agent table
+                        .where((AgentMetrics.organization_id == str(organization)) & (
+                                    AgentMetrics.metric_name == "CPU Usage"))
                         .order_by(AgentMetrics.agent_id, AgentMetrics.updated_at.desc())
                         .distinct(AgentMetrics.agent_id)
                         .offset(offset)
-                        .limit(limitt)       # Ensures only the latest rows per agent are returned
+                        .limit(limitt)
                     )
                     ram_query = list(
                         AgentMetrics
@@ -74,6 +76,64 @@ async def login(request: Request):
                     for i in range(len(cpu_query)):
                         d = {}
                         d["id"]= agent_id = cpu_query[i].agent_id
+                        d["location"] = cpu_query[i].agent.ip_address
+                        d["name"] = cpu_query[i].agent.running_as_user_name
+                        if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
+                            d["cpu_usage"] = "offline"
+                            d["ram_usage"] = "offline"
+                            d["disk_usage"] = "offline"
+                        else:
+
+                            d["cpu_usage"] = "healthy" if cpu_query[i].metric_value < 80 else "critical"
+                            d["ram_usage"] = "healthy" if ram_query[i].metric_value < 80 else "critical"
+                            d["disk_usage"] = "healthy" if disk_query[i].metric_value < 80 else "critical"
+                        agents.append(d)
+                    response["list"] = agents
+
+                    # Users.create(**datadict)
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "OK", "data": response})
+                if user.role=="superadmin":
+                    organization = user.organization_id
+                    response = {}
+                    agents = []
+                    cpu_query = list(
+                        AgentMetrics
+                        .select(AgentMetrics, Agent)
+                        .join(Agent, on=(AgentMetrics.agent_id == Agent.id))  # Join with Agent table
+                        .where(AgentMetrics.metric_name=="CPU Usage")
+                        .order_by(AgentMetrics.agent_id, AgentMetrics.updated_at.desc())
+                        .distinct(AgentMetrics.agent_id)
+                        .offset(offset)
+                        .limit(limitt)       # Ensures only the latest rows per agent are returned
+                    )
+                    ram_query = list(
+                        AgentMetrics
+                        .select()
+                        .where(AgentMetrics.metric_name == "ram_usage")
+                        .order_by(AgentMetrics.agent_id, AgentMetrics.updated_at.desc())
+                        .distinct(AgentMetrics.agent_id)
+                        .offset(offset)
+                        .limit(limitt)      # Ensures only the latest rows per agent are returned
+                    )
+                    disk_query = list(
+                        AgentMetrics
+                        .select()
+                        .where(AgentMetrics.metric_name == "disk_usage")
+                        .order_by(AgentMetrics.agent_id, AgentMetrics.updated_at.desc())
+                        .distinct(AgentMetrics.agent_id)
+                        .offset(offset)
+                        .limit(limitt)  # Ensures only the latest rows per agent are returned
+                    )
+                    response["total_count"] = len(cpu_query)
+                    response["offset"] = offset
+                    response["limit"] = limitt
+                    date = cpu_query[0].updated_at
+                    for i in range(len(cpu_query)):
+                        d = {}
+                        d["id"]= agent_id = cpu_query[i].agent_id
+                        d["location"] = cpu_query[i].agent.ip_address
+                        d["name"] =cpu_query[i].agent.running_as_user_name
                         if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
                             d["cpu_usage"] = "offline"
                             d["ram_usage"] = "offline"
