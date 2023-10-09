@@ -79,6 +79,7 @@ async def login(request: Request):
                         d["id"]= agent_id = cpu_query[i].agent_id
                         d["location"] = cpu_query[i].agent.ip_address
                         d["name"] = cpu_query[i].agent.running_as_user_name
+                        d["last_update_time"] =cpu_query[i].updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                         if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
                             d["cpu_usage"] = "offline"
                             d["ram_usage"] = "offline"
@@ -136,6 +137,7 @@ async def login(request: Request):
                         d["id"]= agent_id = cpu_query[i].agent_id
                         d["location"] = cpu_query[i].agent.ip_address
                         d["name"] =cpu_query[i].agent.running_as_user_name
+                        d["last_update_time"] =cpu_query[i].updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                         if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
                             d["cpu_usage"] = "offline"
                             d["ram_usage"] = "offline"

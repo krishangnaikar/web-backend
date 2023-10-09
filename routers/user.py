@@ -794,3 +794,80 @@ async def verify_mfa_otp(request: Request):
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
     finally:
         pass
+
+@user_router.post('/change_role')
+async def change_role(request: Request):
+    try:
+        headers = request.headers
+        data = await request.json()
+        role = data.get("role")
+        email_to_change = data.get("email")
+        email,organization = validate(headers)
+        if email and email_to_change and role in ["admin","operator","superadmin","researcher"]:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.role in ["admin","superadmin"]:
+                user_change = Users.select().where(Users.email == email_to_change).first()
+                if user_change:
+                    query = Users.update(role=role).where(Users.email == email_to_change)
+                    updated_rows = query.execute()
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200, "message": "MFA Enabled", "data": ""})
+                else:
+                    return JSONResponse(status_code=400,
+                                        content={"code": 400,
+                                                 "message": "User you want to change doesn't exist"})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@user_router.post('/add_org')
+async def add_org(request: Request):
+    try:
+        headers = request.headers
+        data = await request.json()
+        name = data.get("name")
+        website = data.get("website")
+        details = data.get("details")
+        email,organization = validate(headers)
+        if email and name and website and details:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.role == "superadmin":
+                organization = Organization.select().where(Organization.name == name).first()
+                if organization:
+                    return JSONResponse(status_code=400,
+                                        content={"code": 400,
+                                                 "message": "Already Present"})
+                else:
+                    org = Organization(name=name, website=website, details=details)
+                    org.save()
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200,
+                                                 "message": "Organization added"})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
