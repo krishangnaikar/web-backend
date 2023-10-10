@@ -80,14 +80,14 @@ async def login(request: Request):
                         d["location"] = cpu_query[i].agent.ip_address
                         d["name"] = cpu_query[i].agent.running_as_user_name
                         d["last_update_time"] =cpu_query[i].updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                        d["cpu_percentage"] = cpu_query[i].metric_value
+                        d["ram_percentage"] = ram_query[i].metric_value
+                        d["disk_percentage"] = disk_query[i].metric_value
                         if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
                             d["cpu_usage"] = "offline"
                             d["ram_usage"] = "offline"
                             d["disk_usage"] = "offline"
                         else:
-                            d["cpu_percentage"] = cpu_query[i].metric_value
-                            d["ram_percentage"] = ram_query[i].metric_value
-                            d["disk_percentage"] = disk_query[i].metric_value
                             d["cpu_usage"] = "healthy" if cpu_query[i].metric_value <= 80 else ("critical" if cpu_query[i].metric_value>=90  else "unhealthy")
                             d["ram_usage"] = "healthy" if ram_query[i].metric_value <= 80 else ("critical" if ram_query[i].metric_value>=90  else "unhealthy")
                             d["disk_usage"] = "healthy" if disk_query[i].metric_value <= 80 else ("critical" if disk_query[i].metric_value>=90  else "unhealthy")
@@ -140,14 +140,14 @@ async def login(request: Request):
                         d["location"] = cpu_query[i].agent.ip_address
                         d["name"] =cpu_query[i].agent.running_as_user_name
                         d["last_update_time"] =cpu_query[i].updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                        d["cpu_percentage"] = cpu_query[i].metric_value
+                        d["ram_percentage"] = ram_query[i].metric_value
+                        d["disk_percentage"] = disk_query[i].metric_value
                         if (datetime.datetime.now(pytz.utc)  - cpu_query[i].updated_at).total_seconds() > 300:
                             d["cpu_usage"] = "offline"
                             d["ram_usage"] = "offline"
                             d["disk_usage"] = "offline"
                         else:
-                            d["cpu_percentage"] = cpu_query[i].metric_value
-                            d["ram_percentage"] = ram_query[i].metric_value
-                            d["disk_percentage"] = disk_query[i].metric_value
                             d["cpu_usage"] = "healthy" if cpu_query[i].metric_value <= 80 else (
                                 "critical" if cpu_query[i].metric_value >= 90 else "unhealthy")
                             d["ram_usage"] = "healthy" if ram_query[i].metric_value <= 80 else (
