@@ -85,10 +85,9 @@ async def login(request: Request):
                             d["ram_usage"] = "offline"
                             d["disk_usage"] = "offline"
                         else:
-
-                            d["cpu_usage"] = "healthy" if cpu_query[i].metric_value < 80 else "critical"
-                            d["ram_usage"] = "healthy" if ram_query[i].metric_value < 80 else "critical"
-                            d["disk_usage"] = "healthy" if disk_query[i].metric_value < 80 else "critical"
+                            d["cpu_usage"] = "healthy" if cpu_query[i].metric_value <= 80 else ("critical" if cpu_query[i].metric_value>=90  else "unhealthy")
+                            d["ram_usage"] = "healthy" if ram_query[i].metric_value <= 80 else ("critical" if cpu_query[i].metric_value>=90  else "unhealthy")
+                            d["disk_usage"] = "healthy" if disk_query[i].metric_value <= 80 else ("critical" if cpu_query[i].metric_value>=90  else "unhealthy")
                         agents.append(d)
                     response["list"] = agents
 
