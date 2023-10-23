@@ -154,8 +154,8 @@ async def signup(request: Request):
         if first_name and last_name and password and email and org_name:
             organization = Organization.select().where(Organization.name == org_name).first()
             if organization is None:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized user"})
             payload = {
                 "email": email,
@@ -345,14 +345,14 @@ async def validate_token(request: Request):
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "User Authorized", "data": email})
             else:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Invalid Token"})
 
         else:
             applog.error("Api execution failed with 400 status code ")
-            return JSONResponse(status_code=400,
-                                content={"code": 400,
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
                                          "message": "Invalid Token"})
     except Exception as exp:
         applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
@@ -382,8 +382,8 @@ async def validate_email(request: Request):
 
         else:
             applog.error("Api execution failed with 400 status code ")
-            return JSONResponse(status_code=400,
-                                content={"code": 400,
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
                                          "message": "Invalid Token"})
     except Exception as exp:
         applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
@@ -464,8 +464,8 @@ async def ssologin(request: Request):
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OK", "data": response_data})
 
-            return JSONResponse(status_code=400,
-                                content={"code": 400,
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
                                          "message": "Unauthorized User"})
         else:
             applog.error(f"| {data} | Api execution failed with 400 status code ")
@@ -533,8 +533,8 @@ async def send_otp(request: Request):
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OTP SENT", "data": email})
             else:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized User"})
 
         else:
@@ -569,8 +569,8 @@ async def enable_mfa(request: Request):
 
         else:
             applog.error("Api execution failed with 400 status code ")
-            return JSONResponse(status_code=400,
-                                content={"code": 400,
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
                                          "message": "Invalid Payload"})
     except Exception as exp:
         applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
@@ -598,8 +598,8 @@ async def change_password(request: Request):
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "Password Changed", "data": ""})
             else:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized User"})
 
         else:
@@ -670,8 +670,8 @@ async def get_profile(request: Request):
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "Success", "data": response_data})
             else:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized User"})
 
         else:
