@@ -58,7 +58,7 @@ async def login(request: Request):
                     payload = {
                         "email": email,
                         "organization": org_name,
-                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.getenv("TOKEN_EXPIRY")))
                     }
                     secret_key = os.getenv("SECRET_KEY")
                     # Generate the access token
@@ -109,7 +109,7 @@ async def mfa_login(request: Request):
                     payload = {
                         "email": email,
                         "organization": org_name,
-                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.getenv("TOKEN_EXPIRY")))
                     }
                     secret_key = os.getenv("SECRET_KEY")
                     # Generate the access token
@@ -160,7 +160,7 @@ async def signup(request: Request):
             payload = {
                 "email": email,
                 "organization" : org_name,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.getenv("TOKEN_EXPIRY")))
             }
             user = Users.select().where(Users.email == email).first()
             if user:
@@ -261,7 +261,7 @@ async def ssosignup(request: Request):
             payload = {
                 "email": email_address,
                 "organization": organization.name,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.getenv("TOKEN_EXPIRY")))
             }
             # Define the secret key
             secret_key = os.getenv("SECRET_KEY")
@@ -447,7 +447,7 @@ async def ssologin(request: Request):
                 payload = {
                     "email": email_address,
                     "organization": organization,
-                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.getenv("TOKEN_EXPIRY")))
                 }
                 # Define the secret key
                 secret_key = os.getenv("SECRET_KEY")
