@@ -48,7 +48,7 @@ async def login(request: Request):
                             random_str += str(digits[index])
                         handler = EmailHandler()
                         handler.send_mfa_otp_email(email,random_str)
-                        query = Users.update(otp=random_str,otp_expiry = datetime.datetime.now() + + datetime.timedelta(seconds = 300)).where(Users.email == email)
+                        query = Users.update(otp=random_str,otp_expiry = datetime.datetime.now() + datetime.timedelta(seconds = 300)).where(Users.email == email)
                         updated_rows = query.execute()
                         return JSONResponse(status_code=200,
                                             content={"code": 200, "message": "OTP SENT", "data": "email"})
