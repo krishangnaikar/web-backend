@@ -203,12 +203,12 @@ async def login(request: Request):
                 for file in files:
                     data = {}
                     data["filename"] = file.file_path.split("/")[-1]
-                    data["Sensitivity type"] = "Genomic"
-                    data["ACCESS"] = ["User1","User2","User3"]
+                    data["sensitivity_type"] = "Genomic"
+                    data["access"] = ["User1","User2","User3"]
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
-                    data["Compression_status"] = file.compression_type
-                    data["Security_status"] = "Restricted access"
+                    data["compression_status"] = file.compression_type
+                    data["security_status"] = "Restricted access"
                     file_data.append(data)
                 response["total_count"] = len(files)
                 response["offset"] = offset
