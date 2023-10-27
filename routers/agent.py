@@ -16,7 +16,7 @@ from fastapi.exceptions import HTTPException
 from common.services.jwt_decoder import validate
 from fastapi.responses import JSONResponse
 from model.core.models import Users
-from model.agent.models import Agent,AgentMetrics
+from model.agent.models import Agent,AgentMetrics,File
 import requests
 import datetime
 
@@ -173,6 +173,59 @@ async def login(request: Request):
             return JSONResponse(status_code=400,
                                 content={"code": 400,
                                          "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@agent_router.get('/file_list')
+async def login(request: Request):
+    try:
+        headers = request.headers
+        param = request.query_params
+        offset = int(param.get("offset",0))
+        limitt = int(param.get("limit",20))
+        email, organization = validate(headers)
+        if organization and email:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                organization = user.organization_id
+                response = {}
+                file_data = []
+                files = list(File
+                             .select()
+                             .where(File.organization_id == str(organization))
+                             .order_by(File.updated_at.desc())
+                             .offset(offset)
+                             .limit(limitt))
+                # Ensures only the latest rows per agent are returned)
+                for file in files:
+                    data = {}
+                    data["filename"] = file.file_path.split("/")[-1]
+                    data["Sensitivity type"] = "Genomic"
+                    data["ACCESS"] = ["User1","User2","User3"]
+                    data["encryption_status"] = file.encryption_status
+                    data["location"] = file.file_path
+                    data["Compression_status"] = file.compression_type
+                    data["Security_status"] = "Restricted access"
+                    file_data.append(data)
+                response["total_count"] = len(files)
+                response["offset"] = offset
+                response["limit"] = limitt
+                response["list"] = file_data
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response})
+
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Unauthorized user"})
+        else:
+            applog.error(f"|  Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+
     except Exception as exp:
         applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
