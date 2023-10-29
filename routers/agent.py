@@ -210,7 +210,7 @@ async def login(request: Request):
                     data["compression_status"] = file.compression_type
                     data["security_status"] = "Restricted access"
                     file_data.append(data)
-                response["total_count"] = len(files)
+                response["total_count"] = File.select().where(File.organization_id == str(organization)).count()
                 response["offset"] = offset
                 response["limit"] = limitt
                 response["list"] = file_data
