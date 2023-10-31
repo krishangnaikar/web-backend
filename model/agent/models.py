@@ -164,3 +164,12 @@ class AgentTokenAudit(CoreModel):
     class Meta:
         table_name = "agent_token_audit"
         schema = "agent"
+
+class UserFilePermission(CoreModel):
+    file = ForeignKeyField(File,null=False)
+    user = TextField(null=False)
+    permissions = JSONField(null=False)
+
+    class Meta:
+        table_name = "user_file_permissions"
+        schema = "agent"

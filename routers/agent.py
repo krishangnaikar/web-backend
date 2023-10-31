@@ -16,7 +16,7 @@ from fastapi.exceptions import HTTPException
 from common.services.jwt_decoder import validate
 from fastapi.responses import JSONResponse
 from model.core.models import Users
-from model.agent.models import Agent,AgentMetrics,File
+from model.agent.models import Agent,AgentMetrics,File,UserFilePermission
 import requests
 import datetime
 
@@ -202,9 +202,11 @@ async def login(request: Request):
                 # Ensures only the latest rows per agent are returned)
                 for file in files:
                     data = {}
+                    id = file.id
                     data["filename"] = file.file_path.split("/")[-1]
                     data["sensitivity_type"] = "Genomic"
-                    data["access"] = ["User1","User2","User3"]
+                    data["access"] = [[x.user,x.permissions] for x in list(UserFilePermission.select().where(UserFilePermission.file_id==id).limit(3))]
+                    data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
                     data["compression_status"] = file.compression_type
@@ -214,6 +216,40 @@ async def login(request: Request):
                 response["offset"] = offset
                 response["limit"] = limitt
                 response["list"] = file_data
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response})
+
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Unauthorized user"})
+        else:
+            applog.error(f"|  Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+
+    except Exception as exp:
+        applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@agent_router.post('/file_user_list')
+async def login(request: Request):
+    try:
+        headers = request.headers
+        data = await request.json()
+        path = data.get("path")
+        email, organization = validate(headers)
+        if organization and email and path:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                organization = user.organization_id
+                response = {}
+                file = File.select().where(File.file_path == path).first()
+                id = file.id
+                response["users_list"] = [[x.user,x.permissions] for x in list(UserFilePermission.select().where(UserFilePermission.file_id==id))]
+                response["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OK", "data": response})
 
