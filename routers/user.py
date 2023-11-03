@@ -871,3 +871,60 @@ async def add_org(request: Request):
     finally:
         pass
 
+@user_router.get('/get_user_management')
+async def add_org(request: Request):
+    try:
+        headers = request.headers
+        param = request.query_params
+        offset = int(param.get("offset", 0))
+        limitt = int(param.get("limit", 20))
+        email,organization = validate(headers)
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.role == "superadmin":
+                users = list(Users.select().offset(offset).limit(limitt))
+                user_list = []
+                response = {}
+                for u in users:
+                    resp = {}
+                    resp["name"] = u.user_first_name + u.user_last_name
+                    resp["role"] = u.role
+                    resp["status"] = "active"
+                    user_list.append(resp)
+                response["total_count"] = Users.select().count()
+                response["user_list"] = user_list
+                response["limit"] = limitt
+                response["offset"] = offset
+                return JSONResponse(status_code=200,
+                                    content={"code": 200,
+                                             "message": "Success","data": response})
+            elif user:
+                organization = user.organization_name
+                user_list = []
+                users = list(Users.select().where(Users.organization_name==organization).offset(offset).limit(limitt))
+                response = {}
+                for u in users:
+                    resp = {}
+                    resp["name"] = u.user_first_name + u.user_last_name
+                    resp["role"] = u.role
+                    resp["status"] = "active"
+                    user_list.append(resp)
+                response["total_count"] = Users.select().where(Users.organization_name==organization).count()
+                response["user_list"] = user_list
+                response["limit"] = limitt
+                response["offset"] = offset
+                return JSONResponse(status_code=200,
+                                    content={"code": 200,
+                                             "message": "Success","data": response})
+        else:
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Unauthorized User"})
+
+
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
