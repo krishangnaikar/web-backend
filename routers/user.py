@@ -665,7 +665,8 @@ async def get_profile(request: Request):
                     "mfa_enabled" : user.mfa,
                     "set_password":set_passsword,
                     "mfa_type": user.mfa_type,
-                    "mfa_verified": user.mfa_verified
+                    "mfa_verified": user.mfa_verified,
+                    "role": user.role
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "Success", "data": response_data})
@@ -900,6 +901,7 @@ async def add_org(request: Request):
                     resp["last_name"] = u.user_last_name
                     resp["created_at"] = u.created_at.strftime("%m/%d/%Y, %H:%M:%S")
                     resp["role"] = u.role
+                    resp["email"] = u.email
                     resp["status"] = "active"
                     user_list.append(resp)
                 response["total_count"] = Users.select().count()
@@ -921,6 +923,7 @@ async def add_org(request: Request):
                     resp["last_name"] = u.user_last_name
                     resp["created_at"] = u.created_at.strftime("%m/%d/%Y, %H:%M:%S")
                     resp["role"] = u.role
+                    resp["email"] = u.email
                     resp["status"] = "active"
                     user_list.append(resp)
                 response["total_count"] = Users.select().where(Users.organization_name==organization).count()
