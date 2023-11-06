@@ -825,8 +825,8 @@ async def change_role(request: Request):
                                         content={"code": 400,
                                                  "message": "User you want to change doesn't exist"})
             else:
-                return JSONResponse(status_code=400,
-                                    content={"code": 400,
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
                                              "message": "Unauthorized User"})
 
         else:
