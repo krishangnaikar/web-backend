@@ -795,23 +795,31 @@ async def verify_mfa_otp(request: Request):
     finally:
         pass
 
-@user_router.post('/change_role')
+@user_router.post('/edit_user')
 async def change_role(request: Request):
     try:
         headers = request.headers
         data = await request.json()
+        first_name = data.get("first_name",None)
+        last_name = data.get("last_name",None)
         role = data.get("role")
         email_to_change = data.get("email")
         email,organization = validate(headers)
-        if email and email_to_change and role in ["admin","operator","superadmin","researcher"]:
+        if email and email_to_change and role in ["admin","operator","researcher"]:
             user = Users.select().where(Users.email == email).first()
             if user and user.role in ["admin","superadmin"]:
                 user_change = Users.select().where(Users.email == email_to_change).first()
                 if user_change:
                     query = Users.update(role=role).where(Users.email == email_to_change)
                     updated_rows = query.execute()
+                    if first_name:
+                        query = Users.update(user_first_name=first_name).where(Users.email == email_to_change)
+                        updated_rows = query.execute()
+                    if last_name:
+                        query = Users.update(user_last_name=last_name).where(Users.email == email_to_change)
+                        updated_rows = query.execute()
                     return JSONResponse(status_code=200,
-                                        content={"code": 200, "message": "MFA Enabled", "data": ""})
+                                        content={"code": 200, "message": "User Updated", "data": ""})
                 else:
                     return JSONResponse(status_code=400,
                                         content={"code": 400,
