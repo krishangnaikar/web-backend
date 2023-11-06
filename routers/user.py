@@ -887,7 +887,10 @@ async def add_org(request: Request):
                 response = {}
                 for u in users:
                     resp = {}
-                    resp["name"] = u.user_first_name + u.user_last_name
+                    resp["user_id"] = u.id
+                    resp["first_name"] = u.user_first_name
+                    resp["last_name"] = u.user_last_name
+                    resp["created_at"] = u.created_at.strftime("%m/%d/%Y, %H:%M:%S")
                     resp["role"] = u.role
                     resp["status"] = "active"
                     user_list.append(resp)
@@ -905,7 +908,10 @@ async def add_org(request: Request):
                 response = {}
                 for u in users:
                     resp = {}
-                    resp["name"] = u.user_first_name + u.user_last_name
+                    resp["user_id"] = u.id
+                    resp["first_name"] = u.user_first_name
+                    resp["last_name"] = u.user_last_name
+                    resp["created_at"] = u.created_at.strftime("%m/%d/%Y, %H:%M:%S")
                     resp["role"] = u.role
                     resp["status"] = "active"
                     user_list.append(resp)
