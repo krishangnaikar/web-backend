@@ -189,7 +189,35 @@ async def login(request: Request):
         email, organization = validate(headers)
         if organization and email:
             user = Users.select().where(Users.email == email).first()
-            if user:
+            if user and user.role=="superadmin":
+                response = {}
+                file_data = []
+                files = list(File
+                             .select()
+                             .order_by(File.updated_at.desc())
+                             .offset(offset)
+                             .limit(limitt))
+                # Ensures only the latest rows per agent are returned)
+                for file in files:
+                    data = {}
+                    id = file.id
+                    data["filename"] = file.file_path.split("/")[-1]
+                    data["sensitivity_type"] = "Genomic"
+                    data["access"] = [[x.user, x.permissions] for x in list(
+                        UserFilePermission.select().where(UserFilePermission.file_id == id).limit(3))]
+                    data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
+                    data["encryption_status"] = file.encryption_status
+                    data["location"] = file.file_path
+                    data["compression_status"] = file.compression_type
+                    data["security_status"] = "Restricted access"
+                    file_data.append(data)
+                response["total_count"] = File.select().count()
+                response["offset"] = offset
+                response["limit"] = limitt
+                response["list"] = file_data
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response})
+            elif user:
                 organization = user.organization_id
                 response = {}
                 file_data = []
