@@ -945,3 +945,50 @@ async def add_org(request: Request):
     finally:
         pass
 
+@user_router.get('/get_all_org')
+async def add_org(request: Request):
+    try:
+        headers = request.headers
+        param = request.query_params
+        offset = int(param.get("offset", 0))
+        limitt = int(param.get("limit", 20))
+        email,organization = validate(headers)
+        if email:
+            user = Users.select().where(Users.email == email).first()
+            if user and user.role == "superadmin":
+                organization = list(Organization.select().offset(offset).limit(limitt))
+                if organization:
+                    response = {}
+                    org_list = []
+                    for org in organization:
+                        resp = {}
+                        resp["name"] = org.name
+                        resp["id"] = org.id
+                        resp["created_at"] = org.created_at.strftime("%m/%d/%Y, %H:%M:%S")
+                        org_list.append(resp)
+                    response["limit"] = limitt
+                    response["offset"] = offset
+                    response["org_list"] = org_list
+                    return JSONResponse(status_code=200,
+                                        content={"code": 200,
+                                                 "message": "Success","data":response})
+                else:
+
+                    return JSONResponse(status_code=204,
+                                        content={"code": 204,
+                                                 "message": "Data not found"})
+            else:
+                return JSONResponse(status_code=401,
+                                    content={"code": 401,
+                                             "message": "Unauthorized User"})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
