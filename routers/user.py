@@ -965,9 +965,12 @@ async def add_org(request: Request):
                         resp["name"] = org.name
                         resp["id"] = org.id
                         resp["created_at"] = org.created_at.strftime("%m/%d/%Y, %H:%M:%S")
+                        resp["website"] = org.website
+                        resp["details"] = org.details
                         org_list.append(resp)
                     response["limit"] = limitt
                     response["offset"] = offset
+                    response["total_count"] = Organization.select().count()
                     response["org_list"] = org_list
                     return JSONResponse(status_code=200,
                                         content={"code": 200,
