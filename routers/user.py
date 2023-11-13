@@ -67,7 +67,9 @@ async def login(request: Request):
                     updated_rows = query.execute()
                     response_data = {"email": email,
                                      "organization": org_name,
-                                     "access_token": access_token,"display_name":user.user_first_name + " "+ user.user_last_name}
+                                     "access_token": access_token,
+                                     "display_name":user.user_first_name + " "+ user.user_last_name,
+                                     "role":user.role}
                     # Users.create(**datadict)
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "OK", "data": response_data})
@@ -119,7 +121,8 @@ async def mfa_login(request: Request):
                     response_data = {"email": email,
                                      "organization": org_name,
                                      "access_token": access_token,
-                                     "display_name":user.user_first_name + " " + user.user_last_name}
+                                     "display_name":user.user_first_name + " " + user.user_last_name,
+                                     "role":user.role}
                     # Users.create(**datadict)
                     return JSONResponse(status_code=200,
                                         content={"code": 200, "message": "OK", "data": response_data})
@@ -181,7 +184,7 @@ async def signup(request: Request):
             handler.send_email_validation(email, access_token)
             response_data = {"email": email,
                            "organization" : org_name,
-                           "access_token":access_token}
+                           "access_token":access_token,"role":"operator"}
             # Users.create(**datadict)
             return JSONResponse(status_code=200,
                                 content={"code": 200, "message": "OK", "data": response_data})
@@ -275,7 +278,8 @@ async def ssosignup(request: Request):
             response_data = {
                 "access_token":access_token,
                 "display_name":display_name,
-                "email":email_address
+                "email":email_address,
+                "role":"operator"
             }
             return JSONResponse(status_code=200,
                                 content={"code": 200, "message": "OK", "data": response_data})
@@ -459,7 +463,8 @@ async def ssologin(request: Request):
                 response_data = {
                     "access_token": access_token,
                     "email": email_address,
-                    "display_name": display_name
+                    "display_name": display_name,
+                    "role":user.role
                 }
                 return JSONResponse(status_code=200,
                                     content={"code": 200, "message": "OK", "data": response_data})
