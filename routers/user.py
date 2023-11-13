@@ -811,13 +811,14 @@ async def change_role(request: Request):
         role = data.get("role")
         email_to_change = data.get("email")
         email,organization = validate(headers)
-        if email and email_to_change and role in ["admin","operator","researcher"]:
+        if email and email_to_change and role in ["admin","operator","researcher","superadmin"]:
             user = Users.select().where(Users.email == email).first()
             if user and user.role in ["admin","superadmin"]:
                 user_change = Users.select().where(Users.email == email_to_change).first()
                 if user_change:
-                    query = Users.update(role=role).where(Users.email == email_to_change)
-                    updated_rows = query.execute()
+                    if role!="superadmin":
+                        query = Users.update(role=role).where(Users.email == email_to_change)
+                        updated_rows = query.execute()
                     if first_name:
                         query = Users.update(user_first_name=first_name).where(Users.email == email_to_change)
                         updated_rows = query.execute()
