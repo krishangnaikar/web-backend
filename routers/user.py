@@ -1001,3 +1001,37 @@ async def add_org(request: Request):
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
     finally:
         pass
+
+@user_router.post('/update_user_profile')
+async def change_role(request: Request):
+    try:
+        headers = request.headers
+        data = await request.json()
+        first_name = data.get("first_name",None)
+        last_name = data.get("last_name",None)
+        email,organization = validate(headers)
+        if email and organization and first_name and last_name:
+            user = Users.select().where(Users.email == email).first()
+            if user:
+                if first_name:
+                    query = Users.update(user_first_name=first_name).where(Users.email == email)
+                    updated_rows = query.execute()
+                if last_name:
+                    query = Users.update(user_last_name=last_name).where(Users.email == email)
+                    updated_rows = query.execute()
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "User Updated", "data": ""})
+            else:
+                return JSONResponse(status_code=400,
+                                    content={"code": 400,
+                                             "message": "User you want to change doesn't exist"})
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
