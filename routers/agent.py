@@ -73,7 +73,8 @@ async def login(request: Request):
                     response["total_count"] = agent_count
                     response["offset"] = offset
                     response["limit"] = limitt
-                    date = cpu_query[0].updated_at
+                    if len(cpu_query)>0:
+                        date = cpu_query[0].updated_at
                     for i in range(len(cpu_query)):
                         d = {}
                         d["id"]= agent_id = cpu_query[i].agent_id
