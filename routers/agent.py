@@ -203,7 +203,11 @@ async def login(request: Request):
                     data = {}
                     id = file.id
                     data["filename"] = file.file_path.split("/")[-1]
-                    data["sensitivity_type"] = "Genomic"
+                    data["sensitivity_type"] = "Unknown"
+                    if file.file_type in ["FASTA","FASTAQ","BAM"]:
+                        data["sensitivity_type"] = "Genomic"
+                    if file.file_type=="PHI":
+                        data["sensitivity_type"] = "PHI"
                     data["access"] = [[x.user, x.permissions] for x in list(
                         UserFilePermission.select().where(UserFilePermission.file_id == id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
