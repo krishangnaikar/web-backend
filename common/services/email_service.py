@@ -21,7 +21,7 @@ class EmailHandler:
         ses_client = boto3.client('ses', aws_access_key_id=self.aws_access_key_id, aws_secret_access_key=self.aws_secret_access_key, region_name=self.aws_region)
 
         # Specify the sender's email address and recipient's email address
-        sender_email = 'keshav@truenil.io'
+        sender_email = 'admin@truenil.io'
         recipient_email = email
 
         # Specify the email subject and body
