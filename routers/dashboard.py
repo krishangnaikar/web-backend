@@ -74,8 +74,15 @@ def get_file_type(request:Request):
                 response["without_access_control_count"] = count
                 query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).group_by(File.file_type)
                 result = query.dicts()
+                response["Genomic"] = 0
+                response["PHI"] = 0
+                response["PII"] = 0
+                response["PCI"] = 0
                 for row in result:
-                    response[row["file_type"]] = row["file_count"]
+                    if row["file_type"] in ["FASTAQ", "fasta", "fastaq", "FASTA", "BAM"]:
+                        response["Genomic"] += row["file_count"]
+                    if row["file_type"] in ["PHI", "PII", "PCI"]:
+                        response[row["file_type"]] = row["file_count"]
             else:
                 org = user.organization_id
                 response["without_encryption_count"] = File.select().where(File.encryption_status=="Not Encrypted" and File.organization_id==str(org)).count()
@@ -91,8 +98,15 @@ def get_file_type(request:Request):
                 response["without_access_control_count"] =count
                 query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).group_by(File.file_type)
                 result = query.dicts()
+                response["Genomic"] = 0
+                response["PHI"] = 0
+                response["PII"] = 0
+                response["PCI"] = 0
                 for row in result:
-                    response[row["file_type"]] = row["file_count"]
+                    if row["file_type"] in ["FASTAQ","fasta","fastaq","FASTA","BAM"]:
+                        response["Genomic"] += row["file_count"]
+                    if row["file_type"] in ["PHI","PII","PCI"]:
+                        response[row["file_type"]] = row["file_count"]
             return JSONResponse(status_code=200,
                                 content={"code": 200, "message": "", "data": response})
 
