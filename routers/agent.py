@@ -213,8 +213,14 @@ async def login(request: Request):
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
+                    if file.storage_type == "Dynamodb":
+                        data["location"] = "Dynamodb - " + data["location"]
                     data["compression_status"] = file.compression_type
                     data["security_status"] = "Restricted access"
+                    if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
+                        data["control_status"] = "Enable Encryption"
+                    else:
+                        data["control_status"] = "No Change"
                     file_data.append(data)
                 response["total_count"] = File.select().count()
                 response["offset"] = offset
@@ -242,8 +248,14 @@ async def login(request: Request):
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
+                    if file.storage_type == "Dynamodb":
+                        data["location"] = "Dynamodb - " + data["location"]
                     data["compression_status"] = file.compression_type
                     data["security_status"] = "Restricted access"
+                    if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
+                        data["control_status"] = "Enable Encryption"
+                    else:
+                        data["control_status"] = "No Change"
                     file_data.append(data)
                 response["total_count"] = File.select().where(File.organization_id == str(organization)).count()
                 response["offset"] = offset
