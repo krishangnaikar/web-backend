@@ -213,8 +213,7 @@ async def login(request: Request):
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
-                    if file.storage_type == "Dynamodb":
-                        data["location"] = "Dynamodb - " + data["location"]
+                    data["location"] = file.storage_type+ " - " + data["location"]
                     data["compression_status"] = file.compression_type
                     data["security_status"] = "Restricted access"
                     if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
@@ -248,8 +247,7 @@ async def login(request: Request):
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
                     data["location"] = file.file_path
-                    if file.storage_type == "Dynamodb":
-                        data["location"] = "Dynamodb - " + data["location"]
+                    data["location"] = file.storage_type + " - " + data["location"]
                     data["compression_status"] = file.compression_type
                     data["security_status"] = "Restricted access"
                     if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
