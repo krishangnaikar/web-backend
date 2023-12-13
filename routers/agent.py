@@ -215,8 +215,11 @@ async def login(request: Request):
                     data["location"] = file.file_path
                     data["location"] = file.storage_type+ " - " + data["location"]
                     data["compression_status"] = file.compression_type
-                    data["security_status"] = "Restricted access"
-                    if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
+                    if data["encryption_status"] == "Encrypted":
+                        data["control_status"] = "Secure"
+                    else:
+                        data["control_status"] = "Not Secure"
+                    if data["encryption_status"] != "Encrypted":
                         data["control_status"] = "Enable Encryption"
                     else:
                         data["control_status"] = "No Change"
@@ -249,8 +252,11 @@ async def login(request: Request):
                     data["location"] = file.file_path
                     data["location"] = file.storage_type + " - " + data["location"]
                     data["compression_status"] = file.compression_type
-                    data["security_status"] = "Restricted access"
-                    if data["encryption_status"]!="Encrypted" and data["security_status"]=="Restricted access":
+                    if data["encryption_status"] == "Encrypted":
+                        data["control_status"] = "Secure"
+                    else:
+                        data["control_status"] = "Not Secure"
+                    if data["encryption_status"]!="Encrypted":
                         data["control_status"] = "Enable Encryption"
                     else:
                         data["control_status"] = "No Change"
