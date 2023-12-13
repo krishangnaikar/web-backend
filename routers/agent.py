@@ -205,7 +205,8 @@ async def login(request: Request):
                     data["filename"] = file.file_path.split("/")[-1]
                     if file.file_type in ["FASTA","FASTAQ","BAM"]:
                         data["sensitivity_type"] = "PHI- Genomic"
-                    data["sensitivity_type"] = file.file_type
+                    else:
+                        data["sensitivity_type"] = file.file_type
                     data["access"] = [[x.user, x.permissions] for x in list(
                         UserFilePermission.select().where(UserFilePermission.file_id == id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
@@ -245,7 +246,8 @@ async def login(request: Request):
                     data["filename"] = file.file_path.split("/")[-1]
                     if file.file_type in ["FASTA", "FASTAQ", "BAM"]:
                         data["sensitivity_type"] = "PHI- Genomic"
-                    data["sensitivity_type"] = file.file_type
+                    else:
+                        data["sensitivity_type"] = file.file_type
                     data["access"] = [[x.user,x.permissions] for x in list(UserFilePermission.select().where(UserFilePermission.file_id==id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
