@@ -82,6 +82,15 @@ def get_file_type(request:Request):
                 # Count the number of files without permissions
                 count = query.count()
                 response["without_access_control_count"] = count
+                query = (
+                    File
+                    .select()
+                    .join(UserFilePermission, JOIN.LEFT_OUTER, on=(File.id == UserFilePermission.file_id))
+                    .where((UserFilePermission.file_id >> None) & (File.encryption_status == "Not Encrypted"))
+                    # Filter where FilePermission.file_id is NULL
+                )
+                count = query.count()
+                response["without_access_control_and_encryption_count"] = count
                 query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).group_by(File.file_type)
                 result = query.dicts()
                 response["Genomic"] = 0
@@ -106,6 +115,15 @@ def get_file_type(request:Request):
                 # Count the number of files without permissions
                 count = query.count()
                 response["without_access_control_count"] =count
+                query = (
+                    File
+                    .select()
+                    .join(UserFilePermission, JOIN.LEFT_OUTER, on=(File.id == UserFilePermission.file_id))
+                    .where((UserFilePermission.file_id >> None) & (UserFilePermission.organization_id == str(org)) & (File.encryption_status == "Not Encrypted"))
+                    # Filter where FilePermission.file_id is NULL
+                )
+                count = query.count()
+                response["without_access_control_and_encryption_count"] = count
                 query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).where(File.organization_id == str(org) ).group_by(File.file_type)
                 result = query.dicts()
                 response["Genomic"] = 0
