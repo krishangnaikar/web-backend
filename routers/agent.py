@@ -211,6 +211,8 @@ async def login(request: Request):
                         UserFilePermission.select().where(UserFilePermission.file_id == id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
+                    if data["encryption_status"] == "Not Encrypted":
+                        data["encryption_status"] = "plaintext"
                     data["location"] = file.file_path
                     data["location"] = file.storage_type+ " - " + data["location"]
                     data["compression_status"] = file.compression_type
