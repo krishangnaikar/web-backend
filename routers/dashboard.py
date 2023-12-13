@@ -33,13 +33,23 @@ def get_user_management(request:Request):
         headers = request.headers
         email, organization = validate(headers)
         if email and organization:
-            admin_count = Users.select().where(Users.role == "admin").count()
-            operator_count = Users.select().where(Users.role == "operator").count()
-            researcher_count = Users.select().where(Users.role == "researcher").count()
-            response = {"admin_count":admin_count,"researcher_count":researcher_count,"operator_count":operator_count}
-            return JSONResponse(status_code=200,
-                                content={"code": 200, "message": "", "data": response})
-
+            user = Users.select().where(Users.email == email).first()
+            if user.role == "superadmin":
+                admin_count = Users.select().where(Users.role == "admin").count()
+                operator_count = Users.select().where(Users.role == "operator").count()
+                researcher_count = Users.select().where(Users.role == "researcher").count()
+                response = {"admin_count":admin_count,"researcher_count":researcher_count,"operator_count":operator_count}
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "", "data": response})
+            else:
+                org = user.organization_name
+                admin_count = Users.select().where((Users.role == "admin") & (Users.organization_name == org)).count()
+                operator_count = Users.select().where((Users.role == "operator") & (Users.organization_name == org)).count()
+                researcher_count = Users.select().where((Users.role == "researcher") & (Users.organization_name == org)).count()
+                response = {"admin_count": admin_count, "researcher_count": researcher_count,
+                            "operator_count": operator_count}
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "", "data": response})
         else:
             applog.error("Api execution failed with 400 status code ")
             return JSONResponse(status_code=401,
@@ -85,18 +95,18 @@ def get_file_type(request:Request):
                         response[row["file_type"]] = row["file_count"]
             else:
                 org = user.organization_id
-                response["without_encryption_count"] = File.select().where(File.encryption_status=="Not Encrypted" and File.organization_id==str(org)).count()
+                response["without_encryption_count"] = File.select().where((File.encryption_status=="Not Encrypted") & (File.organization_id==str(org))).count()
                 query = (
                     File
                     .select()
                     .join(UserFilePermission, JOIN.LEFT_OUTER, on=(File.id == UserFilePermission.file_id))
-                    .where(UserFilePermission.file_id >> None and UserFilePermission.organization_id == str(org) )  # Filter where FilePermission.file_id is NULL
+                    .where((UserFilePermission.file_id >> None) & (UserFilePermission.organization_id == str(org)) )  # Filter where FilePermission.file_id is NULL
                 )
 
                 # Count the number of files without permissions
                 count = query.count()
                 response["without_access_control_count"] =count
-                query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).group_by(File.file_type)
+                query = File.select(File.file_type, fn.COUNT(File.id).alias('file_count')).where(File.organization_id == str(org) ).group_by(File.file_type)
                 result = query.dicts()
                 response["Genomic"] = 0
                 response["PHI"] = 0
@@ -129,49 +139,99 @@ def get_agent_status(request:Request):
         if email and organization:
             response={}
             user = Users.select().where(Users.email == email).first()
-            # if user.role == "superadmin":
-            five_minutes_ago = (datetime.datetime.now(pytz.utc) - datetime.timedelta(minutes=5)).replace(tzinfo=None)
-            # Query to find the count of rows
-            query = (
-                AgentMetrics
-                .select()
-                .where(
-                    (AgentMetrics.updated_at > five_minutes_ago) &
-                    (AgentMetrics.metric_name == 'CPU Usage') &
-                    (AgentMetrics.metric_value > 90.0)
+            if user.role == "superadmin":
+                five_minutes_ago = (datetime.datetime.now(pytz.utc) - datetime.timedelta(minutes=5)).replace(tzinfo=None)
+                # Query to find the count of rows
+                query = (
+                    AgentMetrics
+                    .select()
+                    .where(
+                        (AgentMetrics.updated_at > five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value > 90.0)
+                    )
                 )
-            )
-            # Execute the query and get the result
-            response["unhealthy_status"] = query.count()
-            query = (
-                AgentMetrics
-                .select(fn.COUNT(AgentMetrics.id).alias('count'))
-                .where(
-                    (AgentMetrics.updated_at >= five_minutes_ago) &
-                    (AgentMetrics.metric_name == 'CPU Usage') &
-                    (AgentMetrics.metric_value < 80.0)
+                # Execute the query and get the result
+                response["unhealthy_status"] = query.count()
+                query = (
+                    AgentMetrics
+                    .select(fn.COUNT(AgentMetrics.id).alias('count'))
+                    .where(
+                        (AgentMetrics.updated_at >= five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value < 80.0)
+                    )
                 )
-            )
-            # Execute the query and get the result
-            response["healthy_status"] = query.scalar()
-            query = (
-                AgentMetrics
-                .select(fn.COUNT(AgentMetrics.id).alias('count'))
-                .where(
-                    (AgentMetrics.updated_at >= five_minutes_ago) &
-                    (AgentMetrics.metric_name == 'CPU Usage') &
-                    (AgentMetrics.metric_value >= 80.0) &
-                    (AgentMetrics.metric_value <= 90.0)
+                # Execute the query and get the result
+                response["healthy_status"] = query.scalar()
+                query = (
+                    AgentMetrics
+                    .select(fn.COUNT(AgentMetrics.id).alias('count'))
+                    .where(
+                        (AgentMetrics.updated_at >= five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value >= 80.0) &
+                        (AgentMetrics.metric_value <= 90.0)
+                    )
                 )
-            )
-            # Execute the query and get the result
-            response["critical_status"] = query.scalar()
-            response["online_agents"] = response["critical_status"] + response["healthy_status"] + response["unhealthy_status"]
-            offine_count = AgentMetrics.select(fn.COUNT(fn.DISTINCT(AgentMetrics.agent_id))).scalar() - response["critical_status"] - response["healthy_status"] - response["unhealthy_status"]
-            # Execute the query and get the result
-            response["offile_agents"] = offine_count
-            return JSONResponse(status_code=200,
-                                content={"code": 200, "message": "", "data": response})
+                # Execute the query and get the result
+                response["critical_status"] = query.scalar()
+                response["online_agents"] = response["critical_status"] + response["healthy_status"] + response["unhealthy_status"]
+                offine_count = AgentMetrics.select(fn.COUNT(fn.DISTINCT(AgentMetrics.agent_id))).scalar() - response["critical_status"] - response["healthy_status"] - response["unhealthy_status"]
+                # Execute the query and get the result
+                response["offile_agents"] = offine_count
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "", "data": response})
+            else:
+                five_minutes_ago = (datetime.datetime.now(pytz.utc) - datetime.timedelta(minutes=5)).replace(tzinfo=None)
+                org = user.organization_id
+                # Query to find the count of rows
+                query = (
+                    AgentMetrics
+                    .select()
+                    .where(
+                        (AgentMetrics.updated_at > five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value > 90.0) &
+                        (AgentMetrics.organization_id == str(org))
+                    )
+                )
+                # Execute the query and get the result
+                response["unhealthy_status"] = query.count()
+                query = (
+                    AgentMetrics
+                    .select(fn.COUNT(AgentMetrics.id).alias('count'))
+                    .where(
+                        (AgentMetrics.updated_at >= five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value < 80.0) &
+                        (AgentMetrics.organization_id == str(org))
+                    )
+                )
+                # Execute the query and get the result
+                response["healthy_status"] = query.scalar()
+                query = (
+                    AgentMetrics
+                    .select(fn.COUNT(AgentMetrics.id).alias('count'))
+                    .where(
+                        (AgentMetrics.updated_at >= five_minutes_ago) &
+                        (AgentMetrics.metric_name == 'CPU Usage') &
+                        (AgentMetrics.metric_value >= 80.0) &
+                        (AgentMetrics.metric_value <= 90.0) &
+                        (AgentMetrics.organization_id == str(org))
+                    )
+                )
+                # Execute the query and get the result
+                response["critical_status"] = query.scalar()
+                response["online_agents"] = response["critical_status"] + response["healthy_status"] + response[
+                    "unhealthy_status"]
+                offine_count = AgentMetrics.select(fn.COUNT(fn.DISTINCT(AgentMetrics.agent_id))).where(AgentMetrics.organization_id == str(org)).scalar() - response[
+                    "critical_status"] - response["healthy_status"] - response["unhealthy_status"]
+                # Execute the query and get the result
+                response["offile_agents"] = offine_count
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "", "data": response})
+
         else:
             applog.error("Api execution failed with 400 status code ")
             return JSONResponse(status_code=401,
