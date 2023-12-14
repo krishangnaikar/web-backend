@@ -211,7 +211,7 @@ async def login(request: Request):
                         UserFilePermission.select().where(UserFilePermission.file_id == id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
-                    if data["encryption_status"] == "Not Encrypted":
+                    if data["encryption_status"] == "Not Encrypted" or data["encryption_status"] == "Not encryted":
                         data["encryption_status"] = "plaintext"
                     data["location"] = file.file_path
                     data["location"] = file.storage_type+ " - " + data["location"]
@@ -253,7 +253,7 @@ async def login(request: Request):
                     data["access"] = [[x.user,x.permissions] for x in list(UserFilePermission.select().where(UserFilePermission.file_id==id).limit(3))]
                     data["user_count"] = UserFilePermission.select().where(UserFilePermission.file_id == id).count()
                     data["encryption_status"] = file.encryption_status
-                    if data["encryption_status"] == "Not Encrypted":
+                    if data["encryption_status"] == "Not Encrypted" or data["encryption_status"] == "Not encryted":
                         data["encryption_status"] = "plaintext"
                     data["location"] = file.file_path
                     data["location"] = file.storage_type + " - " + data["location"]
