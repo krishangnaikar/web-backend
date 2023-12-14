@@ -260,3 +260,36 @@ def get_agent_status(request:Request):
         raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
     finally:
         pass
+
+@dashboard_router.get("/get_control_access")
+def get_control_access(request:Request):
+    try:
+        headers = request.headers
+        email, organization = validate(headers)
+        if email and organization:
+            response={}
+            user = Users.select().where(Users.email == email).first()
+            if user.role=="superadmin":
+                response["security_control_missing"] = File.select().where(
+                    File.encryption_status == "Not Encrypted").count()
+                response["security_control_in_place"] = File.select().where(
+                    File.encryption_status == "Encrypted").count()
+
+            else:
+                org = user.organization_id
+                response["security_control_missing"] = File.select().where((File.encryption_status=="Not Encrypted") & (File.organization_id==str(org))).count()
+                response["security_control_in_place"] = File.select().where((File.encryption_status=="Encrypted") & (File.organization_id==str(org))).count()
+
+            return JSONResponse(status_code=200,
+                                content={"code": 200, "message": "", "data": response})
+
+        else:
+            applog.error("Api execution failed with 400 status code ")
+            return JSONResponse(status_code=401,
+                                content={"code": 401,
+                                         "message": "Invalid Payload"})
+    except Exception as exp:
+        applog.error("Exception occured in : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
