@@ -16,7 +16,7 @@ from fastapi.exceptions import HTTPException
 from common.services.jwt_decoder import validate
 from fastapi.responses import JSONResponse
 from model.core.models import Users
-from model.agent.models import Agent,AgentMetrics,File,UserFilePermission
+from model.agent.models import Agent,AgentMetrics,File,UserFilePermission,AgentFileAudit
 import requests
 import datetime
 
@@ -311,6 +311,72 @@ async def login(request: Request):
             return JSONResponse(status_code=401,
                                 content={"code": 401,
                                          "message": "Unauthorized user"})
+        else:
+            applog.error(f"|  Api execution failed with 400 status code ")
+            return JSONResponse(status_code=400,
+                                content={"code": 400,
+                                         "message": "Invalid Payload"})
+
+    except Exception as exp:
+        applog.error("Exception occured : \n{0}".format(traceback.format_exc()))
+        raise HTTPException(status_code=500, detail={"code": 500, "message": Messages.SOMETHING_WENT_WRONG})
+    finally:
+        pass
+
+@agent_router.get('/audit_logs_list')
+async def audit_logs_list(request: Request):
+    try:
+        headers = request.headers
+        param = request.query_params
+        offset = int(param.get("offset", 0))
+        limitt = int(param.get("limit", 10))
+        email, organization = validate(headers)
+        if organization and email:
+            user = Users.select().where(Users.email == email).first()
+            if user.role=="superadmin":
+                response = {}
+                audits = list(AgentFileAudit
+                              .select()
+                              .order_by(AgentFileAudit.updated_at.desc())
+                              .offset(offset)
+                              .limit(limitt))
+                audit_list = []
+                for audit in audits:
+                    res = {}
+                    res["User"] = audit.user_name
+                    res["Role"] = "non-Truenil user"
+                    res["Action"] = audit.operation
+                    res["Timestamp"] = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                    audit_list.append(res)
+                response["limit"] = limitt
+                response["offset"] = offset
+                response["total_count"] = AgentFileAudit.select().count()
+                response["audit_list"] = audit_list
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response})
+            else:
+                response = {}
+                organization = user.organization_id
+                audits = list(AgentFileAudit
+                             .select()
+                             .where(File.organization_id == str(organization))
+                             .order_by(AgentFileAudit.updated_at.desc())
+                             .offset(offset)
+                             .limit(limitt))
+                audit_list = []
+                for audit in audits:
+                    res = {}
+                    res["User"] = audit.user_name
+                    res["Role"] = "non-Truenil user"
+                    res["Action"] = audit.operation
+                    res["Timestamp"]  = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                    audit_list.append(res)
+                response["limit"] = limitt
+                response["offset"] = offset
+                response["total_count"] = AgentFileAudit.select().where(AgentFileAudit.organization_id == str(organization)).count()
+                response["audit_list"] = audit_list
+                return JSONResponse(status_code=200,
+                                    content={"code": 200, "message": "OK", "data": response})
         else:
             applog.error(f"|  Api execution failed with 400 status code ")
             return JSONResponse(status_code=400,
