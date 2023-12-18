@@ -97,11 +97,14 @@ def get_file_type(request:Request):
                 response["PHI"] = 0
                 response["PII"] = 0
                 response["PCI"] = 0
+                response["Unknown"] = 0
                 for row in result:
                     if row["file_type"] in ["FASTAQ", "fasta", "fastaq", "FASTA", "BAM"]:
                         response["Genomic"] += row["file_count"]
-                    if row["file_type"] in ["PHI", "PII", "PCI"]:
+                    elif row["file_type"] in ["PHI", "PII", "PCI"]:
                         response[row["file_type"]] = row["file_count"]
+                    else:
+                        response["Unknown"]+= row["file_count"]
             else:
                 org = user.organization_id
                 response["without_encryption_count"] = File.select().where((File.encryption_status=="Not Encrypted") & (File.organization_id==str(org))).count()
@@ -130,11 +133,14 @@ def get_file_type(request:Request):
                 response["PHI"] = 0
                 response["PII"] = 0
                 response["PCI"] = 0
+                response["Unknown"]=0
                 for row in result:
                     if row["file_type"] in ["FASTAQ","fasta","fastaq","FASTA","BAM"]:
                         response["Genomic"] += row["file_count"]
-                    if row["file_type"] in ["PHI","PII","PCI"]:
+                    elif row["file_type"] in ["PHI","PII","PCI"]:
                         response[row["file_type"]] = row["file_count"]
+                    else:
+                        response["Unknown"]+= row["file_count"]
             return JSONResponse(status_code=200,
                                 content={"code": 200, "message": "", "data": response})
 
