@@ -344,7 +344,11 @@ async def audit_logs_list(request: Request):
                 for audit in audits:
                     res = {}
                     res["User"] = audit.user_name
-                    res["Role"] = "non-Truenil user"
+                    userr = Users.select().where(Users.user_first_name == audit.user_name).first()
+                    if userr:
+                        res["Role"] = userr.role
+                    else:
+                        res["Role"] = "non-Truenil user"
                     res["Action"] = audit.operation
                     res["Timestamp"] = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                     audit_list.append(res)
@@ -357,6 +361,7 @@ async def audit_logs_list(request: Request):
             else:
                 response = {}
                 organization = user.organization_id
+                orgname = user.organization_name
                 audits = list(AgentFileAudit
                              .select()
                              .where(File.organization_id == str(organization))
@@ -367,7 +372,11 @@ async def audit_logs_list(request: Request):
                 for audit in audits:
                     res = {}
                     res["User"] = audit.user_name
-                    res["Role"] = "non-Truenil user"
+                    userr = Users.select().where((Users.user_first_name == audit.user_name) & (Users.organization_name == orgname)).first()
+                    if userr:
+                        res["Role"] =userr.role
+                    else:
+                        res["Role"] = "non-Truenil user"
                     res["Action"] = audit.operation
                     res["Timestamp"]  = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                     audit_list.append(res)
