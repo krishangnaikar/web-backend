@@ -349,8 +349,12 @@ async def audit_logs_list(request: Request):
                         res["Role"] = userr.role
                     else:
                         res["Role"] = "non-Truenil user"
-                    res["Action"] = audit.operation
-                    res["Timestamp"] = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                    file_name,time = audit.file_name.split("&@#")[0],   audit.file_name.split("&@#")[1]
+                    res["Action"] = audit.operation + " - "+ file_name
+                    if time:
+                        res["Timestamp"] = time
+                    else:
+                        res["Timestamp"] = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                     audit_list.append(res)
                 response["limit"] = limitt
                 response["offset"] = offset
@@ -377,8 +381,12 @@ async def audit_logs_list(request: Request):
                         res["Role"] =userr.role
                     else:
                         res["Role"] = "non-Truenil user"
-                    res["Action"] = audit.operation
-                    res["Timestamp"]  = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
+                    file_name, time = audit.file_name.split("&@#")[0], audit.file_name.split("&@#")[1]
+                    res["Action"] = audit.operation + " - " + file_name
+                    if time:
+                        res["Timestamp"] = time
+                    else:
+                        res["Timestamp"] = audit.updated_at.strftime("%m/%d/%Y, %H:%M:%S")
                     audit_list.append(res)
                 response["limit"] = limitt
                 response["offset"] = offset
