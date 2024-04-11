@@ -29,6 +29,20 @@ dashboard_router = APIRouter(
 )
 @dashboard_router.get("/user_management")
 def get_user_management(request:Request):
+    """
+    Description: Retrieves user management data.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the user management data.
+
+    Example of how to use:
+    response = await get_user_management(request)
+
+    """
     try:
         headers = request.headers
         email, organization = validate(headers)
@@ -62,6 +76,20 @@ def get_user_management(request:Request):
         pass
 @dashboard_router.get("/file_type_count")
 def get_file_type(request:Request):
+    """
+    Description: Retrieves file type count data.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the file type count data.
+
+    Example of how to use:
+
+    response = await get_file_type(request)
+    """
     try:
         headers = request.headers
         email, organization = validate(headers)
@@ -157,6 +185,20 @@ def get_file_type(request:Request):
 
 @dashboard_router.get("/agent_status_count")
 def get_agent_status(request:Request):
+    """
+    Description: Retrieves agent status count data.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the agent status count data.
+
+    Example of how to use:
+
+    response = await get_agent_status(request)
+    """
     try:
         headers = request.headers
         email, organization = validate(headers)
@@ -269,6 +311,20 @@ def get_agent_status(request:Request):
 
 @dashboard_router.get("/get_control_access")
 def get_control_access(request:Request):
+    """
+    Description: Retrieves control access data.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the control access data.
+
+    Example of how to use:
+
+    response = await get_control_access(request)
+    """
     try:
         headers = request.headers
         email, organization = validate(headers)

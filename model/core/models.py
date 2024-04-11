@@ -15,6 +15,18 @@ db = PostgresqlExtDatabase("truenil", user=POSTGRES_USER_NAME, password=POSTGRES
 
 
 class BaseModel(Model):
+    """
+    Base model for all database models.
+
+    Attributes:
+        created_at (DateTimeTZField): The timestamp of when the record was created.
+        updated_at (DateTimeTZField): The timestamp of when the record was last updated.
+        created_by (TextField): The user who created the record.
+        updated_by (TextField): The user who last updated the record.
+
+    Meta:
+        database (PostgresqlExtDatabase): The database to use for this model.
+    """
     created_at= DateTimeTZField(default=datetime.datetime.now())
     updated_at= DateTimeTZField(default=datetime.datetime.now())
     created_by = TextField(default="SYSTEM")
@@ -25,6 +37,19 @@ class BaseModel(Model):
 
 
 class Organization(BaseModel):
+    """
+    Model for representing organizations.
+
+    Attributes:
+        id (BigAutoField): The primary key of the organization.
+        name (TextField): The name of the organization.
+        website (TextField): The website URL of the organization.
+        details (TextField): Additional details about the organization.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     id = BigAutoField(primary_key=True)
     name = TextField(null=False)
     website = TextField(null=False)
@@ -36,10 +61,62 @@ class Organization(BaseModel):
 
 
 class CoreModel(BaseModel):
+    """
+    Base model for core entities.
+
+    Attributes:
+        id (BigAutoField): The primary key of the entity.
+        organization (ForeignKeyField): The organization to which the entity belongs.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     id = BigAutoField(primary_key=True)
     organization = ForeignKeyField(Organization, null=False)
 
 class Users(CoreModel):
+    """
+    Model for representing users.
+
+    Attributes:
+        user_first_name (TextField): The first name of the user.
+        user_last_name (TextField): The last name of the user.
+        email (TextField): The email address used for login.
+        password (TextField): The hashed password of the user.
+        access_token (TextField): The access token of the user.
+        refresh_token (TextField): The refresh token of the user.
+        organization_name (TextField): The name of the organization the user belongs to.
+        role (TextField): The role of the user.
+        otp (TextField): The one-time password of the user.
+        mfa (BooleanField): Flag indicating whether multi-factor authentication is enabled for the user.
+        email_valid (BooleanField): Flag indicating whether the email is validated.
+        mfa_type (TextField): The type of multi-factor authentication.
+        mfa_secret (TextField): The secret key for multi-factor authentication.
+        mfa_uri (TextField): The URI for multi-factor authentication.
+        otp_expiry (DateTimeField): The expiry timestamp of the one-time password.
+        mfa_verified (BooleanField): Flag indicating whether multi-factor authentication is verified.
+
+    Functions:
+        hash_password
+                Hashes the provided password using MD5.
+
+                Args:
+                    password (str): The password to hash.
+
+                Returns:
+                    str: The hashed password.
+        set_password
+                Sets the password by hashing it using MD5
+
+                Args:
+                   password (str): The password to set.
+
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     user_first_name = TextField(null=False)
     user_last_name = TextField(null=False)
     # Email address used for login
@@ -79,6 +156,20 @@ class Users(CoreModel):
         schema = "core"
 
 class User(CoreModel):
+    """
+    Model for representing users in an organization.
+
+    Attributes:
+        user_first_name (TextField): The first name of the user.
+        user_last_name (TextField): The last name of the user.
+        user_id (TextField): The user ID.
+        idp_provider (TextField): The IDP provider details.
+        is_active (BooleanField): Flag indicating whether the user is active.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     user_first_name = TextField(null=False)
     user_last_name = TextField(null=False)
     # Email address used for login

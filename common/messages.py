@@ -1,4 +1,48 @@
 class Messages:
+    """
+    A class containing constant messages is used throughout the application.
+
+    Constants:
+        FAILED (str): A general message indicating failure.
+        FALSE (bool): Boolean value representing false.
+        SUCCESS (str): A general message indicating success.
+        TRUE (bool): Boolean value representing true.
+        HEADER_CONTAINS (str): Message indicating the expected headers in a request.
+        TOKEN_EXPIRED (str): Message indicating an expired authorization token.
+        TOKEN_INVALID (str): Message indicating an invalid authorization token.
+        USER_NOT (str): Message indicating that a user was not found.
+        FRESHWORK_FAILED (str): Message indicating a failure in Freshwork user registration.
+        FETCH_DATA_FAIL (str): Message indicating a failure in fetching card summary data.
+        UNAUTHORIZED (str): Message indicating an unauthorized request.
+        AUTHORIZATION_FAILED (str): Message indicating failed authorization due to an invalid token.
+        AUTHORIZATION_MISSING (str): Message indicating missing authorization token in headers.
+        EXCEPTION_JWT (str): Message indicating an exception during JWT token validation.
+        USER_NOT_MOB_EMAIL (str): Message indicating mismatch in user mobile number or email ID.
+        REPLACE_SUCCESS (str): Message indicating successful initiation of a new card issuance process.
+        REPLACE_FAIL (str): Message indicating failure in the process to issue a new card.
+        UPDATE_FW_CONTACT_SUCCESS (str): Message indicating successful update of Freshwork contact.
+        UPDATE_FW_CONTACT_FAIL (str): Message indicating failure in updating Freshwork contact.
+        USER_INFO (str): Message indicating mismatch in user information.
+        CARD_BLOCKED (str): Message indicating a blocked card and instructions for replacement.
+        CARD_BLOCKED_FAILED (str): Message indicating issues in blocking a card.
+        NOT_MATCH (str): Message indicating that user information does not match.
+        FETCH_MINI_STATEMENT_FAIL (str): Message indicating failure in fetching the mini statement.
+        FETCH_MINI_STATEMENT_SUCCESS (str): Message indicating successful fetch of the mini statement.
+        SOMETHING_WENT_WRONG (str): Message indicating a general failure with a request.
+        CREDIT_DETAILS_NOT (str): Message indicating that user credit card details are not available.
+        FETCH_CARD_SUMMARY (str): Message indicating successful fetch of card summary.
+        USER_INFO_FAILED (str): Message indicating failure in finding a user with provided profile details.
+        CARD_BLOCKED_SECOND (str): Second part of the message for blocked cards and replacement instructions.
+        CARD_BLOCKED_FIRST (str): First part of the message for blocked cards.
+        FRESH_WORK_ADD_FAILED (str): Message indicating failure in adding user information to Freshwork.
+        USER_NOT_FOUND (str): Message indicating invalid customer ID or UUID.
+        CARD_REPLACE_SECOND (str): Second part of the message for replaced cards and activation instructions.
+        INVALID_FORMAT (str): Message indicating invalid format.
+        TOKEN_URL (str): URL for Google OAuth2 token.
+        PEOPLE_API_URL (str): URL for Google People API.
+        SCOPE (str): OAuth2 scope for Google authentication.
+        AUTHORIZATION_URL (str): URL for Google OAuth2 authorization.
+    """
     FAILED = "failed"
     FALSE = False
     SUCCESS = "Success"

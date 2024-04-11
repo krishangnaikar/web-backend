@@ -5,9 +5,13 @@ import boto3
 
 def parameter_data():
     """
-    This function create connection with aws parameter store and extract all the keys and values
-    :return:
-        Dictionary of secret keys and values
+    Create a connection with AWS Parameter Store and extract all the keys and values.
+
+    Returns:
+        dict: Dictionary of secret keys and values.
+
+    Raises:
+        Exception: Raises an exception if there is any error during the process.
     """
     try:
         # if  application running on local it will connect using access and secret key
@@ -47,10 +51,13 @@ def parameter_data():
 
 def get_parameter_values():
     """
-    This function take dictionary from routers config, if it's not there then call parameter_data function and get the
-    dictionary
-    :return:
-        Dictionary of secret keys and values
+    Get a dictionary of secret keys and values.
+
+    Returns:
+        dict: Dictionary of secret keys and values.
+
+    Raises:
+        Exception: Raises an exception if there is any error during the process.
     """
     try:
         para_dict = parameter_data()

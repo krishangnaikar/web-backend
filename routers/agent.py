@@ -26,6 +26,15 @@ agent_router = APIRouter(
 
 @agent_router.get('/agent_status_list')
 async def login(request: Request):
+    """
+    Retrieves a list of agent status.
+
+    Args:
+        request (Request): The FastAPI request object.
+
+    Returns:
+        JSONResponse: A JSON response containing the agent status list.
+    """
     try:
         headers = request.headers
         param = request.query_params
@@ -182,6 +191,15 @@ async def login(request: Request):
 
 @agent_router.get('/file_list')
 async def login(request: Request):
+    """
+    Retrieves a list of files.
+
+    Args:
+        request (Request): The FastAPI request object.
+
+    Returns:
+        JSONResponse: A JSON response containing the file list.
+    """
     try:
         headers = request.headers
         param = request.query_params
@@ -291,6 +309,15 @@ async def login(request: Request):
 
 @agent_router.post('/file_user_list')
 async def login(request: Request):
+    """
+    Retrieves a list of users for a file.
+
+    Args:
+        request (Request): The FastAPI request object.
+
+    Returns:
+        JSONResponse: A JSON response containing the list of users for the file.
+    """
     try:
         headers = request.headers
         data = await request.json()
@@ -325,6 +352,15 @@ async def login(request: Request):
 
 @agent_router.get('/audit_logs_list')
 async def audit_logs_list(request: Request):
+    """
+    Retrieves a list of audit logs.
+
+    Args:
+        request (Request): The FastAPI request object.
+
+    Returns:
+        JSONResponse: A JSON response containing the list of audit logs.
+    """
     try:
         headers = request.headers
         param = request.query_params

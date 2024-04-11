@@ -10,6 +10,25 @@ AGENT_INITIALIZED = "initialized"
 
 
 class Agent(CoreModel):
+    """
+    Represents an agent entity.
+
+    Attributes:
+        uuid (UUIDField): Unique identifier for the agent.
+        version (TextField): Version of the agent.
+        health_status (TextField): Current health status of the agent.
+        last_ping (DateTimeTZField): Timestamp of the last ping from the agent.
+        ip_address (TextField): IP address of the agent.
+        host_name (TextField): Hostname of the machine where the agent is running.
+        running_as_user_name (TextField): Name of the user under which the agent is running.
+        environment_settings (TextField): Environment settings and their values.
+        metadata (JSONField): Unstructured metadata in JSON format.
+        agent_state (TextField): Current state of the agent.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     uuid = UUIDField(null=False)
     version = TextField(null=False)
     health_status = TextField(null=False, default=AGENT_INITIALIZED)
@@ -33,6 +52,17 @@ class Agent(CoreModel):
 
 
 class Bucket(CoreModel):
+    """
+    Represents a bucket entity.
+
+    Attributes:
+        bucket_key (TextField): Key of the bucket.
+        cloud (TextField): Cloud provider associated with the bucket.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     bucket_key = TextField(null=False)
     # values will be the following (in lowercase)
     # aws, gcp, azure, digitalocean, misc
@@ -44,6 +74,21 @@ class Bucket(CoreModel):
 
 
 class File(CoreModel):
+    """
+    Represents a file entity.
+
+    Attributes:
+        bucket (ForeignKeyField): ForeignKeyField to Bucket model.
+        file_path (TextField): Path of the file.
+        encryption_status (TextField): Encryption status of the file.
+        storage_type (TextField): Storage type of the file.
+        file_type (TextField): Type of the file.
+        compression_type (TextField): Compression type of the file.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     bucket = ForeignKeyField(Bucket, null=False)
     file_path = TextField(null=False)
     """ 
@@ -88,6 +133,17 @@ class File(CoreModel):
 
 
 class AgentFile(CoreModel):
+    """
+    Represents a many-to-many relationship between Agent and File models.
+
+    Attributes:
+        agent (ForeignKeyField): ForeignKeyField to Agent model.
+        file (ForeignKeyField): ForeignKeyField to File model.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     agent = ForeignKeyField(Agent, null=False)
     file = ForeignKeyField(File, null=False)
 
@@ -103,6 +159,17 @@ agent_file_unique_idx = AgentFile.index(
 AgentFile.add_index(agent_file_unique_idx)
 
 class AgentBucket(CoreModel):
+    """
+    Represents a many-to-many relationship between Agent and Bucket models.
+
+    Attributes:
+        agent (ForeignKeyField): ForeignKeyField to Agent model.
+        bucket (ForeignKeyField): ForeignKeyField to Bucket model.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     agent = ForeignKeyField(Agent, null=False)
     bucket = ForeignKeyField(Bucket, null=False)
 
@@ -119,6 +186,19 @@ AgentBucket.add_index(agent_bucket_unique_idx)
 
 
 class AgentMetrics(CoreModel):
+    """
+    Represents agent metrics.
+
+    Attributes:
+        agent (ForeignKeyField): ForeignKeyField to Agent model.
+        metric_name (TextField): Name of the metric.
+        metric_value (DoubleField): Value of the metric.
+        process_name (TextField): Name of the process (optional).
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     agent = ForeignKeyField(Agent, null=False)
     """
     metric_name is one of the below. Exact case
@@ -143,6 +223,17 @@ class AgentMetrics(CoreModel):
 
 
 class AgentToken(CoreModel):
+    """
+    Represents an agent token.
+
+    Attributes:
+        token (TextField): Token value.
+        is_active (BooleanField): Indicates if the token is active.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     token = TextField(null=False)
     is_active = BooleanField(default=True, null=False)
 
@@ -158,6 +249,17 @@ AgentToken.add_index(agent_token_unique_idx)
 
 
 class AgentTokenAudit(CoreModel):
+    """
+    Represents agent token audit records.
+
+    Attributes:
+        agent (ForeignKeyField): ForeignKeyField to Agent model.
+        token (ForeignKeyField): ForeignKeyField to AgentToken model.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     agent = ForeignKeyField(Agent, null=False)
     token = ForeignKeyField(AgentToken, null=False)
 
@@ -166,6 +268,18 @@ class AgentTokenAudit(CoreModel):
         schema = "agent"
 
 class UserFilePermission(CoreModel):
+    """
+    Represents user file permissions.
+
+    Attributes:
+        file (ForeignKeyField): ForeignKeyField to File model.
+        user (TextField): User name.
+        permissions (JSONField): Permissions in JSON format.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     file = ForeignKeyField(File,null=False)
     user = TextField(null=False)
     permissions = JSONField(null=False)
@@ -175,6 +289,20 @@ class UserFilePermission(CoreModel):
         schema = "agent"
 
 class AgentFileAudit(CoreModel):
+    """
+    Represents audit records of file operations performed by agents.
+
+    Attributes:
+        agent (ForeignKeyField): ForeignKeyField to Agent model.
+        user_name (TextField): User name associated with the operation.
+        user_email (TextField): User email associated with the operation.
+        file_name (TextField): Name of the file involved in the operation.
+        operation (TextField): Type of operation performed.
+
+    Meta:
+        table_name (str): Name of the database table.
+        schema (str): Schema of the database table.
+    """
     agent = ForeignKeyField(Agent, null=False)
     user_name = TextField(null=False)
     user_email= TextField(null=False)

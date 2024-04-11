@@ -26,6 +26,19 @@ user_router = APIRouter(
 
 @user_router.post('/login')
 async def login(request: Request):
+    """
+    Description: Handles user login authentication.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the authentication result.
+
+    Example of how to use:
+    response = await login(request)
+    """
     try:
         header = request.headers
         data = await request.json()
@@ -89,6 +102,19 @@ async def login(request: Request):
 
 @user_router.post('/mfa_login')
 async def mfa_login(request: Request):
+    """
+    Description: Handles multi-factor authentication (MFA) login.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the authentication result.
+
+    Example of how to use:
+    response = await mfa_login(request)
+    """
     try:
         header = request.headers
         data = await request.json()
@@ -146,6 +172,19 @@ async def mfa_login(request: Request):
 
 @user_router.post('/signup')
 async def signup(request: Request):
+    """
+    Description: Handles user signup process.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the signup result.
+
+    Example of how to use:
+    response = await signup(request)
+    """
     try:
         header = request.headers
         data = await request.json()
@@ -201,6 +240,22 @@ async def signup(request: Request):
 
 @user_router.post('/ssosignup')
 async def ssosignup(request: Request):
+    """
+    @user_router.post('/ssosignup')
+
+
+    Description: Handles single sign-on (SSO) user signup process.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the signup result.
+
+    Example of how to use:
+    response = await ssosignup(request)
+    """
     try:
         header = request.headers
         data = await request.json()
@@ -296,6 +351,22 @@ async def ssosignup(request: Request):
 
 @user_router.get('/oauth')
 async def sso(request: Request):
+    """
+    @user_router.get('/oauth')
+
+
+    Description: Handles the OAuth callback endpoint for single sign-on (SSO) authentication.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the authorization code if available.
+
+    Example of how to use:
+    response = await sso(request)
+    """
     try:
         auth_code = request.query_params.get('code')
         if auth_code:
@@ -316,6 +387,22 @@ async def sso(request: Request):
 
 @user_router.get('/get_sso_url')
 async def get_sso_url(request: Request):
+    """
+    @user_router.get('/get_sso_url')
+
+
+    Description: Generates the URL for single sign-on (SSO) authentication.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the SSO authentication URL.
+
+    Example of how to use:
+    response = await get_sso_url(request)
+    """
     try:
         REDIRECT_URI = os.getenv("REDIRECT_URI")
         CLIENT_ID = os.getenv("CLIENT_ID")
@@ -340,6 +427,22 @@ async def get_sso_url(request: Request):
 
 @user_router.get('/validate_token')
 async def validate_token(request: Request):
+    """
+    @user_router.get('/validate_token')
+
+
+    Description: Validates the access token provided in the request headers.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the token is valid or not.
+
+    Example of how to use:
+    response = await validate_token(request)
+    """
     try:
         headers = request.headers
         email,organization = validate(headers)
@@ -366,6 +469,22 @@ async def validate_token(request: Request):
 
 @user_router.get('/validate_email')
 async def validate_email(request: Request):
+    """
+   @user_router.get('/validate_email')
+
+
+    Description: Validates the email address associated with the access token provided in the request headers.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the email is validated or not.
+
+    Example of how to use:
+    response = await validate_email(request)
+    """
     try:
         headers = request.headers
         email,organization = validate(headers)
@@ -397,6 +516,22 @@ async def validate_email(request: Request):
 
 @user_router.post('/ssologin')
 async def ssologin(request: Request):
+    """
+    @user_router.post('/ssologin')
+
+
+    Description: Handles single sign-on (SSO) authentication.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the access token and user information upon successful authentication.
+
+    Example of how to use:
+    response = await ssologin(request)
+    """
     try:
         header = request.headers
         data = await request.json()
@@ -485,6 +620,22 @@ async def ssologin(request: Request):
 
 @user_router.post("/forgot_password")
 async def forgot_password(request : Request):
+    """
+    @user_router.post("/forgot_password")
+
+
+    Description: Handles the forgot password functionality.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the password reset was successful or not.
+
+    Example of how to use:
+    response = await forgot_password(request)
+    """
     try:
         data = await request.json()
         email = data.get("email")
@@ -518,6 +669,22 @@ async def forgot_password(request : Request):
 
 @user_router.post('/send_otp')
 async def send_otp(request: Request):
+    """
+    @user_router.post('/send_otp')
+
+
+    Description: Sends an OTP to the user's email for authentication.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the OTP was sent successfully or not.
+
+    Example of how to use:
+    response = await send_otp(request)
+    """
     try:
         data = await request.json()
         email = data.get("email")
@@ -555,6 +722,22 @@ async def send_otp(request: Request):
 
 @user_router.post('/enable_mfa')
 async def enable_mfa(request: Request):
+    """
+    @user_router.post('/enable_mfa')
+
+
+    Description: Enables multi-factor authentication (MFA) for the user.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether MFA was enabled successfully or not.
+
+    Example of how to use:
+    response = await enable_mfa(request)
+    """
     try:
         headers = request.headers
         data = await request.json()

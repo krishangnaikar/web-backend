@@ -2,6 +2,22 @@ import logging
 
 
 class ApplicationLogger:
+    """
+    A class providing logging functionality for the application's information, errors, debugging, and warnings.
+
+    Methods:
+        info(msg: str) -> None:
+            Logs an information message.
+
+        error(msg: str) -> None:
+            Logs an error message.
+
+        debug(msg: str) -> None:
+            Logs a debugging message.
+
+        warn(msg: str) -> None:
+            Logs a warning message.
+    """
     def info(msg):
         return logging.getLogger('info_application').info(msg)
 
@@ -16,6 +32,23 @@ class ApplicationLogger:
 
 
 class ThirdPartyLogger:
+    """
+    A class providing logging functionality for third-party integration information, errors, debugging, and warnings.
+
+    Methods:
+        info(msg: str) -> None:
+            Logs an information message.
+
+        error(msg: str) -> None:
+            Logs an error message.
+
+        debug(msg: str) -> None:
+            Logs a debugging message.
+
+        warn(msg: str) -> None:
+            Logs a warning message.
+
+    """
     def info(msg):
         return logging.getLogger('info_third_party').info(msg)
 
@@ -30,6 +63,23 @@ class ThirdPartyLogger:
 
 
 class AuditLogger:
+    """
+    A class providing logging functionality for audit information, errors, debugging, and warnings.
+
+    Methods:
+        info(msg: str) -> None:
+            Logs an information message.
+
+        error(msg: str) -> None:
+            Logs an error message.
+
+        debug(msg: str) -> None:
+            Logs a debugging message.
+
+        warn(msg: str) -> None:
+            Logs a warning message.
+
+    """
     def info(msg):
         return logging.getLogger('info_audit').info(msg)
 
