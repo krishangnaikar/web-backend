@@ -3,6 +3,30 @@ import os
 import jwt
 
 def validate(headers):
+    """
+    Validates an access token extracted from the request headers.
+
+    Args:
+        headers (dict): A dictionary containing the request headers.
+
+    Returns:
+        tuple: A tuple containing:
+            - email (str): The email address extracted from the access token.
+            - organization (str): The organization information extracted from the access token.
+
+    Note:
+        This function expects the access token to be provided in the "Authorization" header
+        with the format "Bearer <access_token>". It decodes the token using the provided secret key,
+        checks for expiration and retrieves the email and organization claims.
+
+    Example:
+        headers = {"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}
+        email, organization = validate(headers)
+        if email and organization:
+            print(f"Token validated successfully. Email: {email}, Organization: {organization}")
+        else:
+            print("Token validation failed.")
+    """
     try:
         token = headers["Authorization"]
         email = None
