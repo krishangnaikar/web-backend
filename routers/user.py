@@ -768,6 +768,23 @@ async def enable_mfa(request: Request):
 
 @user_router.post('/change_password')
 async def change_password(request: Request):
+    """
+    @user_router.post('/change_password')
+
+
+    Description: Handles the password change functionality.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the password was changed successfully or not.
+
+    Example of how to use:
+    response = await change_password(request)
+
+    """
     try:
         headers = request.headers
         data = await request.json()
@@ -803,6 +820,23 @@ async def change_password(request: Request):
 
 @user_router.post('/add_organization_domain')
 async def add_organization(request: Request):
+    """
+    @user_router.post('/add_organization_domain')
+
+
+    Description: Adds a new organization domain.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the organization domain was added successfully or not.
+
+    Example of how to use:
+    response = await add_organization(request)
+
+    """
     try:
         data = await request.json()
         name = data.get("name")
@@ -834,6 +868,23 @@ async def add_organization(request: Request):
 
 @user_router.get('/get-profile')
 async def get_profile(request: Request):
+    """
+    @user_router.get('/get-profile')
+
+
+    Description: Retrieves the user's profile information.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the user's profile information.
+
+    Example of how to use:
+    response = await get_profile(request)
+
+    """
     try:
         headers = request.headers
         email,organization = validate(headers)
@@ -876,6 +927,23 @@ async def get_profile(request: Request):
 
 @user_router.post('/verify_otp')
 async def verify_otp(request: Request):
+    """
+    @user_router.post('/verify_otp')
+
+
+    Description: Verifies the OTP provided by the user.
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the OTP was verified successfully or not.
+
+    Example of how to use:
+    response = await verify_otp(request)
+
+    """
     try:
         data = await request.json()
         email = data.get("email")
@@ -913,6 +981,23 @@ async def verify_otp(request: Request):
 
 @user_router.get('/generate_mfa_uri')
 async def get_profile(request: Request):
+    """
+    @user_router.get('/generate_mfa_uri')
+
+
+    Description: Generates the URI for multi-factor authentication (MFA).
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse containing the MFA URI.
+
+    Example of how to use:
+    response = await generate_mfa_uri(request)
+
+    """
     try:
         headers = request.headers
         email,organization = validate(headers)
@@ -954,6 +1039,23 @@ async def get_profile(request: Request):
 
 @user_router.post('/verify_mfa_otp')
 async def verify_mfa_otp(request: Request):
+    """
+    @user_router.post('/verify_mfa_otp')
+
+
+    Description: Verifies the OTP for multi-factor authentication (MFA).
+
+    Parameters:
+    - request (Request): The FastAPI request object.
+
+    Attributes: None
+
+    Returns: JSONResponse indicating whether the MFA OTP was verified successfully or not.
+
+    Example of how to use:
+    response = await verify_mfa_otp(request)
+
+    """
     try:
         data = await request.json()
         headers = request.headers
@@ -986,6 +1088,30 @@ async def verify_mfa_otp(request: Request):
 
 @user_router.post('/edit_user')
 async def change_role(request: Request):
+    """
+    -  Description:  Change the role of a user in the system.
+
+   Endpoint:   /edit_user
+
+   Method:  POST
+
+   Request Body:
+  {
+      "first_name": "string",
+      "last_name": "string",
+      "role": "string",
+      "email": "string"
+  }
+  - first_name (optional): The new first name of the user.
+  - last_name (optional): The new last name of the user.
+  - role: The new role to be assigned to the user. Must be one of "admin", "operator", "researcher", or "superadmin".
+  - email: The email address of the user whose role is to be changed.
+
+   Response:
+  - 200 OK: Role updated successfully.
+  - 400 Bad Request: Invalid payload or unauthorized user.
+  - 500 Internal Server Error: Something went wrong on the server.
+    """
     try:
         headers = request.headers
         data = await request.json()
@@ -1032,6 +1158,30 @@ async def change_role(request: Request):
 
 @user_router.post('/add_org')
 async def add_org(request: Request):
+    """
+    -  Description:  Add a new organization to the system.
+
+   Endpoint:   /add_org
+
+   Method:   POST
+
+   Request Body:
+  {
+      "name": "string",
+      "website": "string",
+      "details": "string"
+  }
+
+  -  name: Name of the organization.
+  -  website: Website URL of the organization.
+  -  details: Additional details about the organization.
+
+   Response:
+  -  200 OK: Organization added successfully.
+  -  400 Bad Request: Invalid payload or unauthorized user.
+  -  500 Internal Server Error: Something went wrong on the server.
+
+    """
     try:
         headers = request.headers
         data = await request.json()

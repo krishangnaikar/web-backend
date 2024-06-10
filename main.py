@@ -19,6 +19,48 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from common.messages import Messages
 
+"""
+Imports: The script starts with importing necessary modules and packages like os, sys, uvicorn, load_dotenv,
+FastAPI, etc. It also imports routers for different functionalities like user_router, agent_router, 
+and dashboard_router.
+
+Logging Configuration: It configures logging using a dictionary configuration provided in log_config.
+
+Environment Variables: It loads environment variables from a .env file.
+
+FastAPI Application Setup:
+
+An instance of the FastAPI application is created.
+
+Exception handlers are defined for handling HTTP exceptions (StarletteHTTPException) and request validation 
+errors (RequestValidationError).
+
+CORS middleware is added to allow cross-origin requests.
+
+Routers for different functionalities (user_router, agent_router, dashboard_router) are included in the 
+application.
+
+CORS middleware is added to enable Cross-Origin Resource Sharing.
+
+Exception Handlers:
+http_exception_handler handles HTTP exceptions and returns JSON responses with appropriate status codes and 
+error messages.
+
+validation_exception_handler handles request validation errors, removes duplicate error messages, and 
+returns JSON responses with appropriate status codes and error details.
+
+Middleware (Commented): There's a commented section where middleware (JwtMiddleWareToken) is mentioned 
+but not included in the application.
+
+Server Execution: If the script is run directly, it starts the UVicorn server with the FastAPI 
+application running on host "0.0.0.0" and port 8000.
+
+
+This script sets up a FastAPI application with exception handling, CORS support, and includes routers for 
+different API functionalities. It's configured to run as a server using UVicorn.
+
+"""
+
 
 dictConfig(log_config)
 
